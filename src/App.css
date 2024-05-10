@@ -1,38 +1,116 @@
-.App {
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.tablink {
+  background-color: #f2f2f2;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.tablink:hover {
+  background-color: #ddd;
+}
+
+.tabcontent {
+  display: none;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  /* Aggiungiamo uno sfondo generale */
+}
+
+.nav-tabs {
+  background-color: #e9f1ff;
+  /* Colore di sfondo azzurrino */
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
   text-align: center;
+  /* Centrare gli elementi della nav */
+  display: flex;
+  /* Utilizziamo flexbox */
+  justify-content: center;
+  /* Centriamo gli elementi */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.nav-tabs .nav-link {
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #555;
+  font-size: 16px;
+  padding: 10px 20px;
+  margin-right: 10px;
+  transition: border-color 0.3s;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link:hover {
+  border-bottom-color: #007bff;
+  color: #007bff;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.nav-tabs .nav-item {
+  margin-bottom: 0;
+}
+
+.nav-tabs .nav-item:last-child .nav-link {
+  margin-right: 0;
+}
+
+h2 {
+  text-align: center;
+  margin: 20px 0px 20px 0px;
+}
+
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+#svgMap {
+  margin-top: 10px;
+}
+
+.filters {
+  margin-top: 50px;
+}
+
+.select {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+#tab1_left {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#filters {
+  flex: 40%;
+  margin-top: 30px;
+  margin-bottom: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-between;
+  height: 100%;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+#country_institution {
+  flex: 60%;
 }
