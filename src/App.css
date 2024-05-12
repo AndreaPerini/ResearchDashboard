@@ -71,7 +71,7 @@ body {
   margin-right: 0;
 }
 
-h2 {
+.title {
   text-align: center;
   margin: 20px 0px 20px 0px;
 }
@@ -85,32 +85,61 @@ h2 {
   margin-top: 10px;
 }
 
-.filters {
-  margin-top: 50px;
-}
-
-.select {
+.filter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 20px;
+  height: 100%;
+  position: relative;
 }
 
-#tab1_left {
+#statistics {
   display: flex;
   flex-direction: column;
   height: 100%;
+  align-items: stretch;
 }
 
-#filters {
-  flex: 40%;
-  margin-top: 30px;
-  margin-bottom: 30px;
+.number-box {
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
+  font-family: Arial, sans-serif;
+  border: 1px solid black;
+  margin: 10px;
+}
+
+.number {
+  font-size: clamp(16px, 30px, 36px);
+}
+
+.text {
+  font-size: clamp(8px, 14px, 16px);
+  margin-top: 10px;
+}
+
+.col-md-8 {
   height: 100%;
 }
 
-#country_institution {
-  flex: 60%;
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
+
+.col-md-2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

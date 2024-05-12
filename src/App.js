@@ -14,6 +14,7 @@ function App() {
   const [openAccessStatuses, setOpenAccessStatuses] = useState([]);
   const [sdgs, setSdgs] = useState([]);
   const [authors, setAuthors] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
 
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
@@ -25,6 +26,7 @@ function App() {
     fetchData('/openAccessStatuses', setOpenAccessStatuses);
     fetchData('/sdgs', setSdgs);
     fetchData('/authors', setAuthors);
+    fetchData('/institutions', setInstitutions);
   }, []);
 
   // Request for a resource
@@ -86,6 +88,10 @@ function App() {
   const [selectedDomainFieldSubfieldTab1, setSelectedDomainFieldSubfieldTab1] = useState('');
   const [selectedOpenAccessStatusTab1, setSelectedOpenAccessStatusTab1] = useState('');
   const [selectedSdgTab1, setSelectedSdgTab1] = useState('');
+  const [selectedInstitutionTab1, setSelectedInstitutionTab1] = useState([]);
+
+  const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
+  const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
 
   // Update filter values
   const handleDepartmentChangeTab1 = event => setSelectedDepartmentTab1(event.target.value);
@@ -93,35 +99,67 @@ function App() {
   const handleOpenAccessStatusChangeTab1 = event => setSelectedOpenAccessStatusTab1(event.target.value);
   const handleSdgChangeTab1 = event => setSelectedSdgTab1(event.target.value);
 
+  const handleInstitutionChangeTab1 = (event) => {
+    const value = event.target.value;
+    setInputInstitutionTab1(value);
+    const filteredSuggestions = institutions.filter((institution) =>
+      institution.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setSuggestionsInstitutionTab1(filteredSuggestions);
+  };
+
+  const handleSuggestionClickTab1 = (institution) => {
+    setSelectedInstitutionTab1(institution.id_institution);
+    setInputInstitutionTab1(institution.name);
+    setSuggestionsInstitutionTab1([]);
+  };
+
   // Values to populate the map
-  const [countryCollaborationsTab1, setCountryCollaborationsTab1] = useState([]);
+  const [unimiCollaborationsTab1, setUnimiCollaborationsTab1] = useState([]);
   const [collaborationsByCountryTab1, setCollaborationsByCountryTab1] = useState({});
 
   // Refreshing map when filters are selected
   useEffect(() => {
-    handleCountrySubmitTab1();
-  }, [selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1]);
+    fetchData(`/institutionCollaborations?${new URLSearchParams({
+      institution: selectedInstitutionTab1,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+      openAccessStatus: selectedOpenAccessStatusTab1,
+      sdg: selectedSdgTab1,
+    })}`, setUnimiCollaborationsTab1)
+  }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1]);
 
-  // Request for the new values to update the map
-  const handleCountrySubmitTab1 = () => fetchData(`/countryCollaborationsNumber?${new URLSearchParams({
-    department: selectedDepartmentTab1,
-    domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-    openAccessStatus: selectedOpenAccessStatusTab1,
-    sdg: selectedSdgTab1,
-  })}`, setCountryCollaborationsTab1);
-
-  // Populating values for the map
+  // Updating data for map and stats
   useEffect(() => {
     const collaborationsData = {};
-    countryCollaborationsTab1.forEach(collaboration => {
-      const country = collaboration.country;
-      const count = parseInt(collaboration.collaboration_count);
+    var authorNumber = 0;
+    var countryNumber = 0;
+    var workNumber = 0;
+
+    unimiCollaborationsTab1.forEach(row => {
+      const country = row.country;
+      const count = parseInt(row.collaboration_count);
       if (!isNaN(count)) {
-        collaborationsData[country] = { collabs: count };
+        if (collaborationsData[country]) {
+          collaborationsData[country].collabs += count;
+        } else {
+          collaborationsData[country] = { collabs: count };
+          countryNumber++;
+        }
+        workNumber += count;
+      }
+      const authors = parseInt(row.author_count);
+      if (!isNaN(authors)) {
+        authorNumber += authors;
       }
     });
+
+    document.getElementById('author_number').innerHTML = authorNumber;
+    document.getElementById('country_number').innerHTML = countryNumber;
+    document.getElementById('institution_number').innerHTML = unimiCollaborationsTab1.length;
+    document.getElementById('work_number').innerHTML = workNumber;
     setCollaborationsByCountryTab1(collaborationsData);
-  }, [countryCollaborationsTab1]);
+  }, [unimiCollaborationsTab1]);
 
   // Instancing the map
   useEffect(() => {
@@ -163,45 +201,26 @@ function App() {
 
   // Refreshing table when filters are selected
   useEffect(() => {
-    handleAuthorSubmitTab2();
+    fetchData(`/authorCollaborations?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+    })}`, setAuthorCollaborationsTab2);
   }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab2, selectedOpenAccessStatusTab2, selectedSdgTab2]);
-
-  // Request for the new values to update the table
-  const handleAuthorSubmitTab2 = () => fetchData(`/authorCollaborations?${new URLSearchParams({
-    id: selectedAuthorTab2,
-    domainFieldSubfield: selectedDomainFieldSubfieldTab2,
-    openAccessStatus: selectedOpenAccessStatusTab2,
-    sdg: selectedSdgTab2,
-  })}`, setAuthorCollaborationsTab2);
 
   // TAB 3
   // Filters Values
-  const [selectedDepartmentTab3, setSelectedDepartmentTab3] = useState('');
-  const [selectedDomainFieldSubfieldTab3, setSelectedDomainFieldSubfieldTab3] = useState('');
-  const [selectedOpenAccessStatusTab3, setSelectedOpenAccessStatusTab3] = useState('');
-  const [selectedSdgTab3, setSelectedSdgTab3] = useState('');
+
 
   // Update filter values
-  const handleDepartmentChangeTab3 = event => setSelectedDepartmentTab3(event.target.value);
-  const handleDomainFieldSubfieldChangeTab3 = event => setSelectedDomainFieldSubfieldTab3(event.target.value);
-  const handleOpenAccessStatusChangeTab3 = event => setSelectedOpenAccessStatusTab3(event.target.value);
-  const handleSdgChangeTab3 = event => setSelectedSdgTab3(event.target.value);
+
 
   // Values to populate the table
-  const [institutionCollaborationsTab3, setInstitutionCollaborationsTab3] = useState([]);
+
 
   // Refreshing table when filters are selected
-  useEffect(() => {
-    handleInstitutionSubmitTab3();
-  }, [selectedDepartmentTab3, selectedDomainFieldSubfieldTab3, selectedOpenAccessStatusTab3, selectedSdgTab3]);
 
-  // Request for the new values to update the table
-  const handleInstitutionSubmitTab3 = () => fetchData(`/institutionCollaborations?${new URLSearchParams({
-    department: selectedDepartmentTab3,
-    domainFieldSubfield: selectedDomainFieldSubfieldTab3,
-    openAccessStatus: selectedOpenAccessStatusTab3,
-    sdg: selectedSdgTab3,
-  })}`, setInstitutionCollaborationsTab3);
 
   return (
     <div className="App container-fluid">
@@ -210,61 +229,72 @@ function App() {
           <div id="navbar">
             <ul className="nav nav-tabs" id="myTab" role="tablist">
               <li className="nav-item">
-                <a className="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true" onClick={handleTabChange}>Country Collaborations</a>
+                <a className="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true" onClick={handleTabChange}>University of Milan's Collaborations</a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" onClick={handleTabChange}>Author Collaboration</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false" onClick={handleTabChange}>University of Milan's Collaborations</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" id="tab4-tab" data-toggle="tab" href="#tab4" role="tab" aria-controls="tab4" aria-selected="false" onClick={handleTabChange}>Group Collaborations</a>
+                <a className="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false" onClick={handleTabChange}>Group's Collaborations</a>
               </li>
             </ul>
           </div>
           <div className="tab-content" id="myTabContent">
             <div className="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-              <div id="country_collaborations">
-                <h2>Collaborations with University of Milan</h2>
-                <div className="card mb-3">
+              <div id="unimi_collaborations">
+                <h2 className='title'>Collaborations with University of Milan</h2>
+                <div className="card">
                   <div className="row g-0 justify-content-around">
                     <div className="card mb-3">
-                      <div className="card-body row">
-                        <div className="col-md-3">
-                          <div className="card-text select">
+                      <div className="card-body row justify-content-around">
+                        <div className="col-md-2">
+                          <div className="card-text filter">
+                            <form id="institution_input">
+                              <input type="text" value={inputInstitutionTab1} onChange={handleInstitutionChangeTab1} placeholder="Institution" />
+                              <ul>
+                                {suggestionsInstitutionTab1.map((institution) => (
+                                  <li key={institution.id_institution} onClick={() => handleSuggestionClickTab1(institution)}>
+                                    {institution.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </form>
+                          </div>
+                        </div>
+                        <div className="col-md-2">
+                          <div className="card-text filter">
                             <select className="form-select" value={selectedDepartmentTab1} onChange={handleDepartmentChangeTab1}>
-                              <option value="">Select a department</option>
+                              <option value="">Department</option>
                               {departments.map(department => (
                                 <option key={department.id_department} value={department.id_department}>{department.name}</option>
                               ))}
                             </select>
                           </div>
                         </div>
-                        <div className="col-md-3">
-                          <div className="card-text select">
+                        <div className="col-md-2">
+                          <div className="card-text filter">
                             <select className="form-select" value={selectedDomainFieldSubfieldTab1} onChange={handleDomainFieldSubfieldChangeTab1}>
-                              <option value="">Select a topic</option>
+                              <option value="">Topic</option>
                               {subfields.map(subfield => (
                                 <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
                               ))}
                             </select>
                           </div>
                         </div>
-                        <div className="col-md-3">
-                          <div className="card-text select">
+                        <div className="col-md-2">
+                          <div className="card-text filter">
                             <select className="form-select" value={selectedOpenAccessStatusTab1} onChange={handleOpenAccessStatusChangeTab1}>
-                              <option value="">Select an open access status</option>
+                              <option value="">Open access status</option>
                               {openAccessStatuses.map(status => (
                                 <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
                               ))}
                             </select>
                           </div>
                         </div>
-                        <div className="col-md-3">
-                          <div className="card-text select">
+                        <div className="col-md-2">
+                          <div className="card-text filter">
                             <select className="form-select" value={selectedSdgTab1} onChange={handleSdgChangeTab1}>
-                              <option value="">Select a sustainable development goal</option>
+                              <option value="">Sustainable development goal</option>
                               {sdgs.map(sdg => (
                                 <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
                               ))}
@@ -273,13 +303,28 @@ function App() {
                         </div>
                       </div>
                     </div>
-                    <div id='tab1_left' className="col-md-2">
-                      <div id="country_institution_tab1">
-                        tabella delle istituzioni della nazione selezionata
+                    <div className="row g-0 justify-content-around">
+                      <div id='statistics' className="col-md-3">
+                        <div class="number-box">
+                          <div id='author_number' className='number'></div>
+                          <div className='text'>Collaborating authors</div>
+                        </div>
+                        <div class="number-box">
+                          <div id='country_number' className='number'></div>
+                          <div className='text'>Countries</div>
+                        </div>
+                        <div class="number-box">
+                          <div id='institution_number' className='number'></div>
+                          <div className='text'>Institutions</div>
+                        </div>
+                        <div class="number-box">
+                          <div id='work_number' className='number'></div>
+                          <div className='text'>Works</div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-9">
-                      <div id="svgMapTab1"></div>
+                      <div className="col-md-8">
+                        <div id="svgMapTab1"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -287,11 +332,11 @@ function App() {
             </div>
             <div className="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
               <div id="author_collaborations">
-                <h2>Author Collaborations</h2>
+                <h2 className='title'>Author Collaborations</h2>
                 <div className="card mb-3">
                   <div className="card-body row">
                     <div className="col-md-3">
-                      <div className="card-text select">
+                      <div className="card-text filter">
                         <select className="form-select" value={selectedAuthorTab2} onChange={handleAuthorChangeTab2}>
                           <option value="">Select an author</option>
                           {authors.map(author => (
@@ -301,7 +346,7 @@ function App() {
                       </div>
                     </div>
                     <div className="col-md-3">
-                      <div className="card-text select">
+                      <div className="card-text filter">
                         <select className="form-select" value={selectedDomainFieldSubfieldTab2} onChange={handleDomainFieldSubfieldChangeTab2}>
                           <option value="">Select a topic</option>
                           {subfields.map(subfield => (
@@ -311,7 +356,7 @@ function App() {
                       </div>
                     </div>
                     <div className="col-md-3">
-                      <div className="card-text select">
+                      <div className="card-text filter">
                         <select className="form-select" value={selectedOpenAccessStatusTab2} onChange={handleOpenAccessStatusChangeTab2}>
                           <option value="">Select an open access status</option>
                           {openAccessStatuses.map(status => (
@@ -321,7 +366,7 @@ function App() {
                       </div>
                     </div>
                     <div className="col-md-3">
-                      <div className="card-text select">
+                      <div className="card-text filter">
                         <select className="form-select" value={selectedSdgTab2} onChange={handleSdgChangeTab2}>
                           <option value="">Select a sustainable development goal</option>
                           {sdgs.map(sdg => (
@@ -376,100 +421,8 @@ function App() {
               </div>
             </div>
             <div className="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-              <div id="institution_collaborations">
-                <h2>University of Milan's Collaborations</h2>
-                <div className="card mb-3">
-                  <div className="card-body">
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="card-text select">
-                          <select className="form-select" value={selectedDepartmentTab3} onChange={handleDepartmentChangeTab3}>
-                            <option value="">Select a department</option>
-                            {departments.map(department => (
-                              <option key={department.id_department} value={department.id_department}>{department.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="card-text select">
-                          <select className="form-select" value={selectedDomainFieldSubfieldTab3} onChange={handleDomainFieldSubfieldChangeTab3}>
-                            <option value="">Select a topic</option>
-                            {subfields.map(subfield => (
-                              <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="card-text select">
-                          <select className="form-select" value={selectedOpenAccessStatusTab3} onChange={handleOpenAccessStatusChangeTab3}>
-                            <option value="">Select an open access status</option>
-                            {openAccessStatuses.map(status => (
-                              <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="card-text select">
-                          <select className="form-select" value={selectedSdgTab3} onChange={handleSdgChangeTab3}>
-                            <option value="">Select a sustainable development goal</option>
-                            {sdgs.map(sdg => (
-                              <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="table-container">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th className="clickable" onClick={() => handleSort('institution_name')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Institution Name</span>
-                            {sortColumn === 'institution_name' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                        <th className="clickable" onClick={() => handleSort('country')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Country</span>
-                            {sortColumn === 'country' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                        <th className="clickable" onClick={() => handleSort('collaboration_count')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Collaboration Count</span>
-                            {sortColumn === 'collaboration_count' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedData(institutionCollaborationsTab3).map((collaboration, index) => (
-                        <tr key={index}>
-                          <td>{collaboration.institution_name}</td>
-                          <td>{collaboration.country}</td>
-                          <td>{collaboration.collaboration_count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div className="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
               <div id="group_collaborations">
-                <h2>Groups's Collaborations</h2>
+                <h2 className='title'>Groups's Collaborations</h2>
               </div>
             </div>
           </div>
