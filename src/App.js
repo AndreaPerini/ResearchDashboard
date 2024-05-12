@@ -166,7 +166,7 @@ function App() {
     if (Object.keys(collaborationsByCountryTab1).length > 0) {
       const mapContainer = document.getElementById('svgMapTab1');
       mapContainer.innerHTML = '';
-      new svgMap({
+      const map = new svgMap({
         targetElementID: 'svgMapTab1',
         data: {
           data: {
@@ -251,7 +251,7 @@ function App() {
                           <div className="card-text filter">
                             <form id="institution_input">
                               <input type="text" value={inputInstitutionTab1} onChange={handleInstitutionChangeTab1} placeholder="Institution" />
-                              <ul>
+                              <ul className='suggestion-list'>
                                 {suggestionsInstitutionTab1.map((institution) => (
                                   <li key={institution.id_institution} onClick={() => handleSuggestionClickTab1(institution)}>
                                     {institution.name}
@@ -305,24 +305,25 @@ function App() {
                     </div>
                     <div className="row g-0 justify-content-around">
                       <div id='statistics' className="col-md-3">
-                        <div class="number-box">
+                        <div className="number-box">
                           <div id='author_number' className='number'></div>
                           <div className='text'>Collaborating authors</div>
                         </div>
-                        <div class="number-box">
+                        <div className="number-box">
                           <div id='country_number' className='number'></div>
                           <div className='text'>Countries</div>
                         </div>
-                        <div class="number-box">
+                        <div className="number-box">
                           <div id='institution_number' className='number'></div>
                           <div className='text'>Institutions</div>
                         </div>
-                        <div class="number-box">
+                        <div className="number-box">
                           <div id='work_number' className='number'></div>
                           <div className='text'>Works</div>
                         </div>
                       </div>
                       <div className="col-md-8">
+                        <div id="mapLegendTab1"></div>
                         <div id="svgMapTab1"></div>
                       </div>
                     </div>
