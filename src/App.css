@@ -178,7 +178,9 @@ input[type=text] {
 }
 
 .legend-label {
-  margin-right: 10px; /* Margine tra la label e gli item */
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .legend-container {

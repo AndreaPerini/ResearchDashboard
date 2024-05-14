@@ -164,47 +164,45 @@ function App() {
 
   // Instancing the map
   useEffect(() => {
-    if (Object.keys(collaborationsByCountryTab1).length > 0) {
-      const mapContainer = document.getElementById('svgMapTab1');
-      mapContainer.innerHTML = '';
-      const map = new svgMap({
-        targetElementID: 'svgMapTab1',
+    const mapContainer = document.getElementById('svgMapTab1');
+    mapContainer.innerHTML = '';
+    const map = new svgMap({
+      targetElementID: 'svgMapTab1',
+      data: {
         data: {
-          data: {
-            collabs: {
-              name: 'Number of collaborations',
-              format: '{0}',
-              thousandSeparator: '\''
-            }
-          },
-          applyData: 'collabs',
-          values: collaborationsByCountryTab1
-        }
-      });
-      // Legend
-      const colorMax = '#CC0033';
-      const colorMin = '#FFE5D9';
-      const colorNoData = '#E2E2E2';
+          collabs: {
+            name: 'Number of collaborations',
+            format: '{0}',
+            thousandSeparator: '\''
+          }
+        },
+        applyData: 'collabs',
+        values: collaborationsByCountryTab1
+      }
+    });
+    // Legend
+    const colorMax = '#CC0033';
+    const colorMin = '#FFE5D9';
+    const colorNoData = '#E2E2E2';
 
-      var maxValue = 0;
-      Object.keys(collaborationsByCountryTab1).forEach(country => {
-        if (collaborationsByCountryTab1[country].collabs > maxValue) {
-          maxValue = collaborationsByCountryTab1[country].collabs;
-        }
-      });
+    var maxValue = 0;
+    Object.keys(collaborationsByCountryTab1).forEach(country => {
+      if (collaborationsByCountryTab1[country].collabs > maxValue) {
+        maxValue = collaborationsByCountryTab1[country].collabs;
+      }
+    });
 
-      document.getElementById('mapLegendTab1').innerHTML = `
+    document.getElementById('mapLegendTab1').innerHTML = `
       <div class="legend-label">Number of Collaborations: </div>
       <div class="legend-items">
       <div class="legend-item" style="background-color: ${colorNoData};">0</div>
-      <div class="legend-item" style="background-color: ${colorMin};">1</div>
+      <div class="legend-item" style="background-color: ${colorMin};">${maxValue * 0.01}</div>
       <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${maxValue * 0.25}</div>
       <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${maxValue * 0.5}</div>
       <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${maxValue * 0.75}</div>
       <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
       </div>
     `;
-    }
   }, [collaborationsByCountryTab1]);
 
   // TAB 2
