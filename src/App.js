@@ -19,6 +19,9 @@ function App() {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
 
+  // Track active tab
+  const [activeTab, setActiveTab] = useState('tab1_1');
+
   // Filters requests
   useEffect(() => {
     fetchData('/departments', setDepartments);
@@ -58,13 +61,10 @@ function App() {
       if (sortColumn === 'collaboration_count') {
         const aValue = parseInt(a[sortColumn]);
         const bValue = parseInt(b[sortColumn]);
-
         if (isNaN(aValue)) return 1;
         if (isNaN(bValue)) return -1;
-
         return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
       } else {
-
         if (a[sortColumn] < b[sortColumn]) {
           return sortDirection === 'asc' ? -1 : 1;
         }
@@ -77,9 +77,16 @@ function App() {
   };
 
   // Resetting sorting when switching tab
-  const handleTabChange = () => {
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
     setSortColumn(null);
     setSortDirection('asc');
+    if (tab === 'tab1_1') {
+      document.getElementById('mapLegendTab1').style.display = 'flex';
+      updateMap();
+    } else {
+      document.getElementById('mapLegendTab1').style.display = 'none';
+    }
   };
 
   // TAB 1
@@ -89,7 +96,9 @@ function App() {
   const [selectedOpenAccessStatusTab1, setSelectedOpenAccessStatusTab1] = useState('');
   const [selectedSdgTab1, setSelectedSdgTab1] = useState('');
   const [selectedInstitutionTab1, setSelectedInstitutionTab1] = useState([]);
-
+  const [selectedStartYearTab1, setSelectedStartYearTab1] = useState('');
+  const [selectedFinishYearTab1, setSelectedFinishYearTab1] = useState('');
+  var start = true;
   const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
 
@@ -98,6 +107,20 @@ function App() {
   const handleDomainFieldSubfieldChangeTab1 = event => setSelectedDomainFieldSubfieldTab1(event.target.value);
   const handleOpenAccessStatusChangeTab1 = event => setSelectedOpenAccessStatusTab1(event.target.value);
   const handleSdgChangeTab1 = event => setSelectedSdgTab1(event.target.value);
+  const handleStartYearTab1 = event => {
+    const year = event.target.value;
+    if (year <= selectedFinishYearTab1) {
+      setSelectedStartYearTab1(year);
+      document.getElementById('maxYear').min = year;
+    }
+  };
+  const handleFinishYearTab1 = event => {
+    const year = event.target.value;
+    if (year >= selectedStartYearTab1) {
+      setSelectedFinishYearTab1(event.target.value);
+      document.getElementById('minYear').max = year;
+    }
+  };
 
   const handleInstitutionChangeTab1 = (event) => {
     const value = event.target.value;
@@ -126,33 +149,55 @@ function App() {
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
       openAccessStatus: selectedOpenAccessStatusTab1,
       sdg: selectedSdgTab1,
+      startYear: selectedStartYearTab1,
+      finishYear: selectedFinishYearTab1
     })}`, setUnimiCollaborationsTab1)
-  }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1]);
+  }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
 
   // Updating data for map and stats
   useEffect(() => {
     const collaborationsData = {};
+    const yearsData = {};
     var authorNumber = 0;
     var countryNumber = 0;
     var workNumber = 0;
+    var minYear = 2100;
+    var maxYear = 0;
 
     unimiCollaborationsTab1.forEach(row => {
       const country = row.country;
       const count = parseInt(row.collaboration_count);
-      if (!isNaN(count)) {
+      const year = parseInt(row.year);
+      const author_count = parseInt(row.author_count);
+      if (!isNaN(count) && !isNaN(year) && !isNaN(author_count)) {
         if (collaborationsData[country]) {
           collaborationsData[country].collabs += count;
         } else {
           collaborationsData[country] = { collabs: count };
           countryNumber++;
         }
+        if (yearsData[year]) {
+          yearsData[year].collabs += count;
+          yearsData[year].authors += author_count;
+        } else {
+          yearsData[year] = { collabs: count, authors: author_count };
+        }
+        authorNumber += author_count;
         workNumber += count;
-      }
-      const authors = parseInt(row.author_count);
-      if (!isNaN(authors)) {
-        authorNumber += authors;
+        if (year < minYear) minYear = year;
+        if (year > maxYear) maxYear = year;
       }
     });
+
+    if (start) {
+      document.getElementById('minYear').placeholder = minYear;
+      document.getElementById('maxYear').placeholder = maxYear;
+      document.getElementById('minYear').min = minYear;
+      document.getElementById('maxYear').min = maxYear;
+      document.getElementById('minYear').max = minYear;
+      document.getElementById('maxYear').max = maxYear;
+      start = false;
+    }
 
     document.getElementById('author_number').innerHTML = authorNumber;
     document.getElementById('country_number').innerHTML = countryNumber;
@@ -160,50 +205,55 @@ function App() {
     document.getElementById('work_number').innerHTML = workNumber;
 
     setCollaborationsByCountryTab1(collaborationsData);
+    if (activeTab === 'tab1_1') {
+      updateMap();
+    }
   }, [unimiCollaborationsTab1]);
 
   // Instancing the map
-  useEffect(() => {
-    const mapContainer = document.getElementById('svgMapTab1');
-    mapContainer.innerHTML = '';
-    const map = new svgMap({
-      targetElementID: 'svgMapTab1',
-      data: {
+  function updateMap() {
+    setTimeout(function () {
+      const mapContainer = document.getElementById('svgMapTab1');
+      mapContainer.innerHTML = '';
+      const map = new svgMap({
+        targetElementID: 'svgMapTab1',
         data: {
-          collabs: {
-            name: 'Number of collaborations',
-            format: '{0}',
-            thousandSeparator: '\''
-          }
-        },
-        applyData: 'collabs',
-        values: collaborationsByCountryTab1
-      }
-    });
-    // Legend
-    const colorMax = '#CC0033';
-    const colorMin = '#FFE5D9';
-    const colorNoData = '#E2E2E2';
+          data: {
+            collabs: {
+              name: 'Number of collaborations',
+              format: '{0}',
+              thousandSeparator: '\''
+            }
+          },
+          applyData: 'collabs',
+          values: collaborationsByCountryTab1
+        }
+      });
+      // Legend
+      const colorMax = '#CC0033';
+      const colorMin = '#FFE5D9';
+      const colorNoData = '#E2E2E2';
 
-    var maxValue = 0;
-    Object.keys(collaborationsByCountryTab1).forEach(country => {
-      if (collaborationsByCountryTab1[country].collabs > maxValue) {
-        maxValue = collaborationsByCountryTab1[country].collabs;
-      }
-    });
+      var maxValue = 0;
+      Object.keys(collaborationsByCountryTab1).forEach(country => {
+        if (collaborationsByCountryTab1[country].collabs > maxValue) {
+          maxValue = collaborationsByCountryTab1[country].collabs;
+        }
+      });
 
-    document.getElementById('mapLegendTab1').innerHTML = `
-      <div class="legend-label">Number of Collaborations: </div>
-      <div class="legend-items">
-      <div class="legend-item" style="background-color: ${colorNoData};">0</div>
-      <div class="legend-item" style="background-color: ${colorMin};">${maxValue * 0.01}</div>
-      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${maxValue * 0.25}</div>
-      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${maxValue * 0.5}</div>
-      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${maxValue * 0.75}</div>
-      <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
-      </div>
-    `;
-  }, [collaborationsByCountryTab1]);
+      document.getElementById('mapLegendTab1').innerHTML = `
+        <div class="legend-label">Number of Collaborations: </div>
+        <div class="legend-items">
+        <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+        <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
+        <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+        </div>
+      `;
+    }, 1000);
+  }
 
   // TAB 2
   // Filters Values
@@ -248,26 +298,26 @@ function App() {
     <div className="App container-fluid">
       <div className="row">
         <div className="col">
-          <div id="navbar">
-            <ul className="nav nav-tabs" id="myTab" role="tablist">
+          <div>
+            <ul className="nav nav-tabs" role="tablist">
               <li className="nav-item">
-                <a className="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true" onClick={handleTabChange}>University of Milan's Collaborations</a>
+                <a className="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true" onClick={() => handleTabChange('tab1_1')}>University of Milan's Collaborations</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" onClick={handleTabChange}>Author Collaboration</a>
+                <a className="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" onClick={() => handleTabChange('tab2')}>Author Collaboration</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false" onClick={handleTabChange}>Group's Collaborations</a>
+                <a className="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false" onClick={() => handleTabChange('tab3')}>Group's Collaborations</a>
               </li>
             </ul>
           </div>
-          <div className="tab-content" id="myTabContent">
+          <div className="tab-content">
             <div className="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
               <div id="unimi_collaborations">
                 <h2 className='title'>Collaborations with University of Milan</h2>
                 <div className="card">
-                  <div className="row g-0 justify-content-around">
-                    <div className="card mb-3">
+                  <div className="row justify-content-around">
+                    <div className="mb-3">
                       <div className="card-body row justify-content-around">
                         <div className="col-md-2">
                           <div className="card-text filter">
@@ -323,30 +373,107 @@ function App() {
                             </select>
                           </div>
                         </div>
+                        <div className="col-md-2">
+                          <input type="number" id="minYear" name="minYear" onChange={handleStartYearTab1}></input>
+                          <input type="number" id="maxYear" name="maxYear" onChange={handleFinishYearTab1}></input>
+                        </div>
                       </div>
                     </div>
-                    <div className="row g-0 justify-content-around">
+                    <div className="row justify-content-around">
                       <div id='statistics' className="col-md-3">
-                        <div className="number-box">
-                          <div id='author_number' className='number'></div>
-                          <div className='text'>Collaborating authors</div>
+                        <div className="row g-0 justify-content-around">
+                          <div className='col-md-5'>
+                            <div className="number-box">
+                              <div id='author_number' className='number'></div>
+                              <div className='text'>Collaborating authors</div>
+                            </div>
+                          </div>
+                          <div className='col-md-5'>
+                            <div className="number-box">
+                              <div id='country_number' className='number'></div>
+                              <div className='text'>Countries</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="number-box">
-                          <div id='country_number' className='number'></div>
-                          <div className='text'>Countries</div>
-                        </div>
-                        <div className="number-box">
-                          <div id='institution_number' className='number'></div>
-                          <div className='text'>Institutions</div>
-                        </div>
-                        <div className="number-box">
-                          <div id='work_number' className='number'></div>
-                          <div className='text'>Works</div>
+                        <div className="row g-0 justify-content-around">
+                          <div className='col-md-5'>
+                            <div className="number-box">
+                              <div id='institution_number' className='number'></div>
+                              <div className='text'>Institutions</div>
+                            </div>
+                          </div>
+                          <div className='col-md-5'>
+                            <div className="number-box">
+                              <div id='work_number' className='number'></div>
+                              <div className='text'>Works</div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-md-8">
-                        <div id="mapLegendTab1" className='legend-container'></div>
-                        <div id="svgMapTab1"></div>
+                        <div className='row'>
+                          <div id='nav-tab1' className='col-md-3'>
+                            <ul className="nav nav-tabs" role="tablist">
+                              <li className="nav-item">
+                                <a className="nav-link active" id="tab1-tab1map" data-toggle="tab" href="#tab1map" role="tab" aria-controls="tab1map" aria-selected="true" onClick={() => handleTabChange('tab1_1')}>Map View</a>
+                              </li>
+                              <li className="nav-item">
+                                <a className="nav-link" id="tab1-tab1list" data-toggle="tab" href="#tab1list" role="tab" aria-controls="tab1list" aria-selected="false" onClick={() => handleTabChange('tab1_2')}>List View</a>
+                              </li>
+                            </ul>
+                          </div>
+                          <div className='col-md-9'>
+                            <div id="mapLegendTab1" className='legend-container'></div>
+                          </div>
+                        </div>
+                        <div className="tab-content">
+                          <div className="tab-pane fade show active" id="tab1map" role="tabpanel" aria-labelledby="tab1-tab1map">
+                            <div id="svgMapTab1"></div>
+                          </div>
+                          <div className="tab-pane fade" id="tab1list" role="tabpanel" aria-labelledby="tab1-tab1list">
+                            <div id='listTab1' className="table-container">
+                              <table className="table">
+                                <thead>
+                                  <tr>
+                                    <th className="clickable" onClick={() => handleSort('institution_name')}>
+                                      <div className="d-flex align-items-center justify-content-between">
+                                        <span>Institution Name</span>
+                                        {sortColumn === 'institution_name' && (
+                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                        )}
+                                      </div>
+                                    </th>
+                                    <th className="clickable" onClick={() => handleSort('country')}>
+                                      <div className="d-flex align-items-center justify-content-between">
+                                        <span>Country</span>
+                                        {sortColumn === 'country' && (
+                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                        )}
+                                      </div>
+                                    </th>
+                                    <th className="clickable" onClick={() => handleSort('collaboration_count')}>
+                                      <div className="d-flex align-items-center justify-content-between">
+                                        <span>Collaboration Count</span>
+                                        {sortColumn === 'collaboration_count' && (
+                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                        )}
+                                      </div>
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {sortedData(unimiCollaborationsTab1).map((collaboration, index) => (
+                                    <tr key={index}>
+                                      <td>{collaboration.institution_name}</td>
+                                      <td>{collaboration.country}</td>
+                                      <td>{collaboration.collaboration_count}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

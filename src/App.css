@@ -189,3 +189,7 @@ input[type=text] {
   padding: 5px;
   margin-bottom: 10px;
 }
+
+input[type=number] {
+  width: 100%;
+}
