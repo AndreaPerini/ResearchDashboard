@@ -158,6 +158,7 @@ function App() {
     document.getElementById('country_number').innerHTML = countryNumber;
     document.getElementById('institution_number').innerHTML = unimiCollaborationsTab1.length;
     document.getElementById('work_number').innerHTML = workNumber;
+
     setCollaborationsByCountryTab1(collaborationsData);
   }, [unimiCollaborationsTab1]);
 
@@ -180,6 +181,29 @@ function App() {
           values: collaborationsByCountryTab1
         }
       });
+      // Legend
+      const colorMax = '#CC0033';
+      const colorMin = '#FFE5D9';
+      const colorNoData = '#E2E2E2';
+
+      var maxValue = 0;
+      Object.keys(collaborationsByCountryTab1).forEach(country => {
+        if (collaborationsByCountryTab1[country].collabs > maxValue) {
+          maxValue = collaborationsByCountryTab1[country].collabs;
+        }
+      });
+
+      document.getElementById('mapLegendTab1').innerHTML = `
+      <div class="legend-label">Number of Collaborations: </div>
+      <div class="legend-items">
+      <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+      <div class="legend-item" style="background-color: ${colorMin};">1</div>
+      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${maxValue * 0.25}</div>
+      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${maxValue * 0.5}</div>
+      <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${maxValue * 0.75}</div>
+      <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+      </div>
+    `;
     }
   }, [collaborationsByCountryTab1]);
 
@@ -323,7 +347,7 @@ function App() {
                         </div>
                       </div>
                       <div className="col-md-8">
-                        <div id="mapLegendTab1"></div>
+                        <div id="mapLegendTab1" className='legend-container'></div>
                         <div id="svgMapTab1"></div>
                       </div>
                     </div>
