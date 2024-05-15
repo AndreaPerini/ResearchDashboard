@@ -156,31 +156,36 @@ function App() {
 
   // Updating data for map and stats
   useEffect(() => {
-    const collaborationsData = {};
+    const collaborationsByCountry = {};
+    const collaborationsByInstitution = {};
     const yearsData = {};
     var authorNumber = 0;
-    var countryNumber = 0;
     var workNumber = 0;
     var minYear = 2100;
     var maxYear = 0;
 
     unimiCollaborationsTab1.forEach(row => {
+      const institution = row.institution_name;
       const country = row.country;
-      const count = parseInt(row.collaboration_count);
       const year = parseInt(row.year);
+      const count = parseInt(row.collaboration_count);
       const author_count = parseInt(row.author_count);
       if (!isNaN(count) && !isNaN(year) && !isNaN(author_count)) {
-        if (collaborationsData[country]) {
-          collaborationsData[country].collabs += count;
+        if (collaborationsByCountry[country]) {
+          collaborationsByCountry[country].collabs += count;
         } else {
-          collaborationsData[country] = { collabs: count };
-          countryNumber++;
+          collaborationsByCountry[country] = { collabs: count };
+        }
+        if (collaborationsByInstitution[institution]) {
+          collaborationsByInstitution[institution].collabs += count;
+        } else {
+          collaborationsByInstitution[institution] = { collabs: count };
         }
         if (yearsData[year]) {
           yearsData[year].collabs += count;
-          yearsData[year].authors += author_count;
+          yearsData[year].institutions++;
         } else {
-          yearsData[year] = { collabs: count, authors: author_count };
+          yearsData[year] = { collabs: count, institutions: 1 };
         }
         authorNumber += author_count;
         workNumber += count;
@@ -199,13 +204,14 @@ function App() {
       start = false;
     }
 
-    document.getElementById('author_number').innerHTML = authorNumber;
-    document.getElementById('country_number').innerHTML = countryNumber;
-    document.getElementById('institution_number').innerHTML = unimiCollaborationsTab1.length;
+    document.getElementById('author_number').innerHTML = authorNumber; //check
+    document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
+    document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
     document.getElementById('work_number').innerHTML = workNumber;
 
-    setCollaborationsByCountryTab1(collaborationsData);
+    setCollaborationsByCountryTab1(collaborationsByCountry);
     if (activeTab === 'tab1_1') {
+      //yearsData.collabs .institutions
       updateMap();
     }
   }, [unimiCollaborationsTab1]);
@@ -213,35 +219,36 @@ function App() {
   // Instancing the map
   function updateMap() {
     setTimeout(function () {
-      const mapContainer = document.getElementById('svgMapTab1');
-      mapContainer.innerHTML = '';
-      const map = new svgMap({
-        targetElementID: 'svgMapTab1',
-        data: {
+      if (activeTab === 'tab1_1') {
+        const mapContainer = document.getElementById('svgMapTab1');
+        mapContainer.innerHTML = '';
+        const map = new svgMap({
+          targetElementID: 'svgMapTab1',
           data: {
-            collabs: {
-              name: 'Number of collaborations',
-              format: '{0}',
-              thousandSeparator: '\''
-            }
-          },
-          applyData: 'collabs',
-          values: collaborationsByCountryTab1
-        }
-      });
-      // Legend
-      const colorMax = '#CC0033';
-      const colorMin = '#FFE5D9';
-      const colorNoData = '#E2E2E2';
+            data: {
+              collabs: {
+                name: 'Number of collaborations',
+                format: '{0}',
+                thousandSeparator: '\''
+              }
+            },
+            applyData: 'collabs',
+            values: collaborationsByCountryTab1
+          }
+        });
+        // Legend
+        const colorMax = '#CC0033';
+        const colorMin = '#FFE5D9';
+        const colorNoData = '#E2E2E2';
 
-      var maxValue = 0;
-      Object.keys(collaborationsByCountryTab1).forEach(country => {
-        if (collaborationsByCountryTab1[country].collabs > maxValue) {
-          maxValue = collaborationsByCountryTab1[country].collabs;
-        }
-      });
+        var maxValue = 0;
+        Object.keys(collaborationsByCountryTab1).forEach(country => {
+          if (collaborationsByCountryTab1[country].collabs > maxValue) {
+            maxValue = collaborationsByCountryTab1[country].collabs;
+          }
+        });
 
-      document.getElementById('mapLegendTab1').innerHTML = `
+        document.getElementById('mapLegendTab1').innerHTML = `
         <div class="legend-label">Number of Collaborations: </div>
         <div class="legend-items">
         <div class="legend-item" style="background-color: ${colorNoData};">0</div>
@@ -252,6 +259,7 @@ function App() {
         <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
         </div>
       `;
+      }
     }, 1000);
   }
 
@@ -380,34 +388,56 @@ function App() {
                       </div>
                     </div>
                     <div className="row justify-content-around">
-                      <div id='statistics' className="col-md-3">
-                        <div className="row g-0 justify-content-around">
-                          <div className='col-md-5'>
-                            <div className="number-box">
-                              <div id='author_number' className='number'></div>
-                              <div className='text'>Collaborating authors</div>
+                      <div id='tab1-left' className="col-md-3">
+                        <div id='statistics'>
+                          <div className="row g-0 justify-content-around">
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='author_number' className='number'></div>
+                                <div className='text'>Collaborating authors</div>
+                              </div>
+                            </div>
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='country_number' className='number'></div>
+                                <div className='text'>Countries</div>
+                              </div>
                             </div>
                           </div>
-                          <div className='col-md-5'>
-                            <div className="number-box">
-                              <div id='country_number' className='number'></div>
-                              <div className='text'>Countries</div>
+                          <div className="row g-0 justify-content-around">
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='institution_number' className='number'></div>
+                                <div className='text'>Institutions</div>
+                              </div>
+                            </div>
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='work_number' className='number'></div>
+                                <div className='text'>Works</div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="row g-0 justify-content-around">
-                          <div className='col-md-5'>
-                            <div className="number-box">
-                              <div id='institution_number' className='number'></div>
-                              <div className='text'>Institutions</div>
-                            </div>
-                          </div>
-                          <div className='col-md-5'>
-                            <div className="number-box">
-                              <div id='work_number' className='number'></div>
-                              <div className='text'>Works</div>
-                            </div>
-                          </div>
+                        <div id='table-top10' className='table-container'>
+                          <table className="table">
+                            <thead>
+                              <tr>
+                                <th><span>Top 10</span></th>
+                                <th><span>Country</span></th>
+                                <th><span>Collaboration Count</span></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries(collaborationsByCountryTab1).sort((a, b) => b[1].collabs - a[1].collabs).slice(0, 10).map(([country, data], index) => (
+                                <tr key={index}>
+                                  <td>{index + 1}</td>
+                                  <td>{country}</td>
+                                  <td>{data.collabs}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                       <div className="col-md-8">
@@ -431,46 +461,75 @@ function App() {
                             <div id="svgMapTab1"></div>
                           </div>
                           <div className="tab-pane fade" id="tab1list" role="tabpanel" aria-labelledby="tab1-tab1list">
-                            <div id='listTab1' className="table-container">
-                              <table className="table">
-                                <thead>
-                                  <tr>
-                                    <th className="clickable" onClick={() => handleSort('institution_name')}>
-                                      <div className="d-flex align-items-center justify-content-between">
-                                        <span>Institution Name</span>
-                                        {sortColumn === 'institution_name' && (
-                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                        )}
-                                      </div>
-                                    </th>
-                                    <th className="clickable" onClick={() => handleSort('country')}>
-                                      <div className="d-flex align-items-center justify-content-between">
-                                        <span>Country</span>
-                                        {sortColumn === 'country' && (
-                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                        )}
-                                      </div>
-                                    </th>
-                                    <th className="clickable" onClick={() => handleSort('collaboration_count')}>
-                                      <div className="d-flex align-items-center justify-content-between">
-                                        <span>Collaboration Count</span>
-                                        {sortColumn === 'collaboration_count' && (
-                                          <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                        )}
-                                      </div>
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {sortedData(unimiCollaborationsTab1).map((collaboration, index) => (
-                                    <tr key={index}>
-                                      <td>{collaboration.institution_name}</td>
-                                      <td>{collaboration.country}</td>
-                                      <td>{collaboration.collaboration_count}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            <div id='list-view'>
+                              <div id='table-view' className='row justify-content-around'>
+                                <div className='col-md-8'>
+                                  <div id='listTab1' className="table-container">
+                                    <table className="table">
+                                      <thead>
+                                        <tr>
+                                          <th className="clickable" onClick={() => handleSort('institution_name')}>
+                                            <div className="d-flex align-items-center justify-content-between">
+                                              <span>Institution Name</span>
+                                              {sortColumn === 'institution_name' && (
+                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                              )}
+                                            </div>
+                                          </th>
+                                          <th className="clickable" onClick={() => handleSort('country')}>
+                                            <div className="d-flex align-items-center justify-content-between">
+                                              <span>Country</span>
+                                              {sortColumn === 'country' && (
+                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                              )}
+                                            </div>
+                                          </th>
+                                          <th className="clickable" onClick={() => handleSort('collaboration_count')}>
+                                            <div className="d-flex align-items-center justify-content-between">
+                                              <span>Collaborations</span>
+                                              {sortColumn === 'collaboration_count' && (
+                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                              )}
+                                            </div>
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {sortedData(unimiCollaborationsTab1).map((collaboration, index) => (
+                                          <tr key={index}>
+                                            <td>{collaboration.institution_name}</td>
+                                            <td>{collaboration.country}</td>
+                                            <td>{collaboration.collaboration_count}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                                <div className='col-md-4'>
+                                  <div id='listTab1' className="table-container">
+                                    <table className="table">
+                                      <thead>
+                                        <tr>
+                                          <th><span>Institution Name</span></th>
+                                          <th><span>Country</span></th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {unimiCollaborationsTab1.map((collaboration, index) => (
+                                          <tr key={index}>
+                                            <td>{collaboration.country}</td>
+                                            <td>{collaboration.collaboration_count}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </div>
+                              <div id='graph-wrapper' className='row justify-content-around'>
+                                
+                              </div>
                             </div>
                           </div>
                         </div>
