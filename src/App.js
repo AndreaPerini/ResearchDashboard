@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import svgMap from 'svgmap';
 import 'svgmap/dist/svgMap.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import Chart from 'chart.js/auto';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -98,7 +99,6 @@ function App() {
   const [selectedInstitutionTab1, setSelectedInstitutionTab1] = useState([]);
   const [selectedStartYearTab1, setSelectedStartYearTab1] = useState('');
   const [selectedFinishYearTab1, setSelectedFinishYearTab1] = useState('');
-  var start = true;
   const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
 
@@ -109,17 +109,13 @@ function App() {
   const handleSdgChangeTab1 = event => setSelectedSdgTab1(event.target.value);
   const handleStartYearTab1 = event => {
     const year = event.target.value;
-    if (year <= selectedFinishYearTab1) {
-      setSelectedStartYearTab1(year);
-      document.getElementById('maxYear').min = year;
-    }
+    setSelectedStartYearTab1(year);
+    document.getElementById('maxYear').min = year;
   };
   const handleFinishYearTab1 = event => {
     const year = event.target.value;
-    if (year >= selectedStartYearTab1) {
-      setSelectedFinishYearTab1(event.target.value);
-      document.getElementById('minYear').max = year;
-    }
+    setSelectedFinishYearTab1(event.target.value);
+    document.getElementById('minYear').max = year;
   };
 
   const handleInstitutionChangeTab1 = (event) => {
@@ -140,6 +136,7 @@ function App() {
   // Values to populate the map
   const [unimiCollaborationsTab1, setUnimiCollaborationsTab1] = useState([]);
   const [collaborationsByCountryTab1, setCollaborationsByCountryTab1] = useState({});
+  const [collaborationsByInstitutionTab1, setCollaborationsByInstitutionTab1] = useState({});
 
   // Refreshing map when filters are selected
   useEffect(() => {
@@ -179,7 +176,7 @@ function App() {
         if (collaborationsByInstitution[institution]) {
           collaborationsByInstitution[institution].collabs += count;
         } else {
-          collaborationsByInstitution[institution] = { collabs: count };
+          collaborationsByInstitution[institution] = { country: country, collabs: count };
         }
         if (yearsData[year]) {
           yearsData[year].collabs += count;
@@ -194,30 +191,33 @@ function App() {
       }
     });
 
-    if (start) {
+    if (minYear <= 1966 && maxYear >= 2024) {
       document.getElementById('minYear').placeholder = minYear;
       document.getElementById('maxYear').placeholder = maxYear;
       document.getElementById('minYear').min = minYear;
-      document.getElementById('maxYear').min = maxYear;
-      document.getElementById('minYear').max = minYear;
+      document.getElementById('maxYear').min = minYear;
+      document.getElementById('minYear').max = maxYear;
       document.getElementById('maxYear').max = maxYear;
-      start = false;
+      console.log(document.getElementById('minYear').min);
+      console.log(document.getElementById('maxYear').max);
     }
 
     document.getElementById('author_number').innerHTML = authorNumber; //check
     document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
     document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
     document.getElementById('work_number').innerHTML = workNumber;
-
+    setCollaborationsByInstitutionTab1(collaborationsByInstitution);
     setCollaborationsByCountryTab1(collaborationsByCountry);
     if (activeTab === 'tab1_1') {
-      //yearsData.collabs .institutions
-      updateMap();
+      updateMap(collaborationsByCountry);
+    }
+    if (activeTab === 'tab1_2') {
+      updateGraph(yearsData);
     }
   }, [unimiCollaborationsTab1]);
 
   // Instancing the map
-  function updateMap() {
+  function updateMap(collaborationsByCountry) {
     setTimeout(function () {
       if (activeTab === 'tab1_1') {
         const mapContainer = document.getElementById('svgMapTab1');
@@ -233,7 +233,7 @@ function App() {
               }
             },
             applyData: 'collabs',
-            values: collaborationsByCountryTab1
+            values: collaborationsByCountry
           }
         });
         // Legend
@@ -242,9 +242,9 @@ function App() {
         const colorNoData = '#E2E2E2';
 
         var maxValue = 0;
-        Object.keys(collaborationsByCountryTab1).forEach(country => {
-          if (collaborationsByCountryTab1[country].collabs > maxValue) {
-            maxValue = collaborationsByCountryTab1[country].collabs;
+        Object.keys(collaborationsByCountry).forEach(country => {
+          if (collaborationsByCountry[country].collabs > maxValue) {
+            maxValue = collaborationsByCountry[country].collabs;
           }
         });
 
@@ -259,6 +259,58 @@ function App() {
         <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
         </div>
       `;
+      }
+    }, 1000);
+  }
+
+  // Update graph
+  const graphRef = useRef(null);
+  function updateGraph(yearsData) {
+    setTimeout(function () {
+      if (activeTab === 'tab1_2') {
+        const labels = Object.keys(yearsData).map(year => parseInt(year));
+        const collabsData = Object.values(yearsData).map(data => data.collabs);
+        const institutionsData = Object.values(yearsData).map(data => data.institutions);
+        const ctx = graphRef.current.getContext('2d');
+        if (window.myChart instanceof Chart) {
+          window.myChart.destroy();
+        }
+        window.myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Works',
+                data: collabsData,
+                borderColor: 'blue',
+                fill: false
+              },
+              {
+                label: 'Istitutions',
+                data: institutionsData,
+                borderColor: 'green',
+                fill: false
+              }
+            ]
+          },
+          options: {
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Year'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Count'
+                }
+              }
+            }
+          }
+        });
       }
     }, 1000);
   }
@@ -325,7 +377,7 @@ function App() {
                 <h2 className='title'>Collaborations with University of Milan</h2>
                 <div className="card">
                   <div className="row justify-content-around">
-                    <div className="mb-3">
+                    <div>
                       <div className="card-body row justify-content-around">
                         <div className="col-md-2">
                           <div className="card-text filter">
@@ -462,73 +514,48 @@ function App() {
                           </div>
                           <div className="tab-pane fade" id="tab1list" role="tabpanel" aria-labelledby="tab1-tab1list">
                             <div id='list-view'>
-                              <div id='table-view' className='row justify-content-around'>
-                                <div className='col-md-8'>
-                                  <div id='listTab1' className="table-container">
-                                    <table className="table">
-                                      <thead>
-                                        <tr>
-                                          <th className="clickable" onClick={() => handleSort('institution_name')}>
-                                            <div className="d-flex align-items-center justify-content-between">
-                                              <span>Institution Name</span>
-                                              {sortColumn === 'institution_name' && (
-                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                              )}
-                                            </div>
-                                          </th>
-                                          <th className="clickable" onClick={() => handleSort('country')}>
-                                            <div className="d-flex align-items-center justify-content-between">
-                                              <span>Country</span>
-                                              {sortColumn === 'country' && (
-                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                              )}
-                                            </div>
-                                          </th>
-                                          <th className="clickable" onClick={() => handleSort('collaboration_count')}>
-                                            <div className="d-flex align-items-center justify-content-between">
-                                              <span>Collaborations</span>
-                                              {sortColumn === 'collaboration_count' && (
-                                                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                                              )}
-                                            </div>
-                                          </th>
+                              <div id='table-view' className='row'>
+                                <div id='listTab1' className="col-md-8 table-container">
+                                  <table className="table">
+                                    <thead>
+                                      <tr>
+                                        <th><span>Institution Name</span></th>
+                                        <th><span>Country</span></th>
+                                        <th><span>Collaborations</span></th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
+                                        <tr key={index}>
+                                          <td>{institution}</td>
+                                          <td>{data.country}</td>
+                                          <td>{data.collabs}</td>
                                         </tr>
-                                      </thead>
-                                      <tbody>
-                                        {sortedData(unimiCollaborationsTab1).map((collaboration, index) => (
-                                          <tr key={index}>
-                                            <td>{collaboration.institution_name}</td>
-                                            <td>{collaboration.country}</td>
-                                            <td>{collaboration.collaboration_count}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
+                                      ))}
+                                    </tbody>
+                                  </table>
                                 </div>
-                                <div className='col-md-4'>
-                                  <div id='listTab1' className="table-container">
-                                    <table className="table">
-                                      <thead>
-                                        <tr>
-                                          <th><span>Institution Name</span></th>
-                                          <th><span>Country</span></th>
+                                <div id='citTab1' className="col-md-4 table-container">
+                                  <table className="table">
+                                    <thead>
+                                      <tr>
+                                        <th><span>Institution Name</span></th>
+                                        <th><span>Collaborations</span></th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
+                                        <tr key={index}>
+                                          <td>{institution}</td>
+                                          <td>{data.collabs}</td>
                                         </tr>
-                                      </thead>
-                                      <tbody>
-                                        {unimiCollaborationsTab1.map((collaboration, index) => (
-                                          <tr key={index}>
-                                            <td>{collaboration.country}</td>
-                                            <td>{collaboration.collaboration_count}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
+                                      ))}
+                                    </tbody>
+                                  </table>
                                 </div>
                               </div>
-                              <div id='graph-wrapper' className='row justify-content-around'>
-                                
+                              <div id='graph'>
+                                <canvas ref={graphRef} id='graph-wrapper'></canvas>
                               </div>
                             </div>
                           </div>
