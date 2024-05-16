@@ -167,7 +167,8 @@ function App() {
       const year = parseInt(row.year);
       const count = parseInt(row.collaboration_count);
       const author_count = parseInt(row.author_count);
-      if (!isNaN(count) && !isNaN(year) && !isNaN(author_count)) {
+      const cit_count = parseInt(row.citations);
+      if (!isNaN(count) && !isNaN(year) && !isNaN(author_count) && !isNaN(cit_count)) {
         if (collaborationsByCountry[country]) {
           collaborationsByCountry[country].collabs += count;
         } else {
@@ -175,9 +176,11 @@ function App() {
         }
         if (collaborationsByInstitution[institution]) {
           collaborationsByInstitution[institution].collabs += count;
+          collaborationsByInstitution[institution].citations += cit_count;
         } else {
-          collaborationsByInstitution[institution] = { country: country, collabs: count };
+          collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
         }
+
         if (yearsData[year]) {
           yearsData[year].collabs += count;
           yearsData[year].institutions++;
@@ -494,7 +497,7 @@ function App() {
                       </div>
                       <div className="col-md-8">
                         <div className='row'>
-                          <div id='nav-tab1' className='col-md-3'>
+                          <div id='nav-tab1' className='col-md-4'>
                             <ul className="nav nav-tabs" role="tablist">
                               <li className="nav-item">
                                 <a className="nav-link active" id="tab1-tab1map" data-toggle="tab" href="#tab1map" role="tab" aria-controls="tab1map" aria-selected="true" onClick={() => handleTabChange('tab1_1')}>Map View</a>
@@ -504,7 +507,7 @@ function App() {
                               </li>
                             </ul>
                           </div>
-                          <div className='col-md-9'>
+                          <div className='col-md-8'>
                             <div id="mapLegendTab1" className='legend-container'></div>
                           </div>
                         </div>
@@ -540,14 +543,14 @@ function App() {
                                     <thead>
                                       <tr>
                                         <th><span>Institution Name</span></th>
-                                        <th><span>Collaborations</span></th>
+                                        <th><span>Citations</span></th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
                                         <tr key={index}>
                                           <td>{institution}</td>
-                                          <td>{data.collabs}</td>
+                                          <td>{data.citations}</td>
                                         </tr>
                                       ))}
                                     </tbody>
