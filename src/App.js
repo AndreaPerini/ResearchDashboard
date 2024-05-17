@@ -60,7 +60,7 @@ function App() {
   const sortedData = (data) => {
     if (!sortColumn) return data;
     return [...data].sort((a, b) => {
-      if (sortColumn === 'collaboration_count') {
+      if (sortColumn === 'collabs' || sortColumn === 'citations') {
         const aValue = parseInt(a[sortColumn]);
         const bValue = parseInt(b[sortColumn]);
         if (isNaN(aValue)) return 1;
@@ -167,7 +167,7 @@ function App() {
       const year = parseInt(row.year);
       const count = parseInt(row.collaboration_count);
       const author_count = parseInt(row.author_count);
-      const cit_count = parseInt(row.citations);
+      const cit_count = parseInt(row.citation_count);
       if (!isNaN(count) && !isNaN(year) && !isNaN(author_count) && !isNaN(cit_count)) {
         if (collaborationsByCountry[country]) {
           collaborationsByCountry[country].collabs += count;
@@ -201,8 +201,6 @@ function App() {
       document.getElementById('maxYear').min = minYear;
       document.getElementById('minYear').max = maxYear;
       document.getElementById('maxYear').max = maxYear;
-      console.log(document.getElementById('minYear').min);
-      console.log(document.getElementById('maxYear').max);
     }
 
     document.getElementById('author_number').innerHTML = authorNumber; //check
@@ -280,7 +278,6 @@ function App() {
       }
     } catch (error) {
       console.error("An error occurred while updating the map:", error);
-      updateMap();
     }
   }
 
@@ -341,7 +338,6 @@ function App() {
       }
     } catch (error) {
       console.error("An error occurred while updating the graph:", error);
-      updateGraph();
     }
   }
 
@@ -537,19 +533,52 @@ function App() {
                                 <table className="table">
                                   <thead>
                                     <tr>
-                                      <th><span>Institution Name</span></th>
-                                      <th><span>Country</span></th>
-                                      <th><span>Collaborations</span></th>
-                                      <th><span>Citations</span></th>
+                                      <th className="clickable" onClick={() => handleSort('institution_name')}>
+                                        <div className="d-flex align-items-center justify-content-between">
+                                          <span>Institution Name</span>
+                                          {sortColumn === 'institution_name' && (
+                                            <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                          )}
+                                        </div>
+                                      </th>
+                                      <th className="clickable" onClick={() => handleSort('country')}>
+                                        <div className="d-flex align-items-center justify-content-between">
+                                          <span>Country</span>
+                                          {sortColumn === 'country' && (
+                                            <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                          )}
+                                        </div>
+                                      </th>
+                                      <th className="clickable" onClick={() => handleSort('collabs')}>
+                                        <div className="d-flex align-items-center justify-content-between">
+                                          <span>Collaborations</span>
+                                          {sortColumn === 'collabs' && (
+                                            <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                          )}
+                                        </div>
+                                      </th>
+                                      <th className="clickable" onClick={() => handleSort('citations')}>
+                                        <div className="d-flex align-items-center justify-content-between">
+                                          <span>Citations</span>
+                                          {sortColumn === 'citations' && (
+                                            <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                                          )}
+                                        </div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
+                                    {sortedData(Object.entries(collaborationsByInstitutionTab1).map(([institution, data]) => ({
+                                      institution_name: institution,
+                                      country: data.country,
+                                      collabs: data.collabs,
+                                      citations: data.citations,
+                                    }))).map((collaboration, index) => (
                                       <tr key={index}>
-                                        <td>{institution}</td>
-                                        <td>{data.country}</td>
-                                        <td>{data.collabs}</td>
-                                        <td>{data.citations}</td>
+                                        <td>{collaboration.institution_name}</td>
+                                        <td>{collaboration.country}</td>
+                                        <td>{collaboration.collabs}</td>
+                                        <td>{collaboration.citations}</td>
                                       </tr>
                                     ))}
                                   </tbody>
