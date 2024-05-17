@@ -134,6 +134,8 @@ function App() {
 
   // Values to populate the map
   const [unimiCollaborationsTab1, setUnimiCollaborationsTab1] = useState([]);
+  const [collaboratorsTab1, setCollaboratorsTab1] = useState([]);
+  const [collaborationsTab1, setCollaborationsTab1] = useState([]);
   const [collaborationsByCountryTab1, setCollaborationsByCountryTab1] = useState({});
   const [yearsDataTab1, setYearsDataTab1] = useState({});
   const [collaborationsByInstitutionTab1, setCollaborationsByInstitutionTab1] = useState({});
@@ -148,7 +150,27 @@ function App() {
       sdg: selectedSdgTab1,
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
-    })}`, setUnimiCollaborationsTab1)
+    })}`, setUnimiCollaborationsTab1);
+
+    fetchData(`/collaborators?${new URLSearchParams({
+      institution: selectedInstitutionTab1,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+      openAccessStatus: selectedOpenAccessStatusTab1,
+      sdg: selectedSdgTab1,
+      startYear: selectedStartYearTab1,
+      finishYear: selectedFinishYearTab1
+    })}`, setCollaboratorsTab1);
+
+    fetchData(`/collaborations?${new URLSearchParams({
+      institution: selectedInstitutionTab1,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+      openAccessStatus: selectedOpenAccessStatusTab1,
+      sdg: selectedSdgTab1,
+      startYear: selectedStartYearTab1,
+      finishYear: selectedFinishYearTab1
+    })}`, setCollaborationsTab1);
   }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
 
   // Updating data for map and stats
@@ -156,8 +178,6 @@ function App() {
     const collaborationsByCountry = {};
     const collaborationsByInstitution = {};
     const yearsData = {};
-    var authorNumber = 0;
-    var workNumber = 0;
     var minYear = 2100;
     var maxYear = 0;
 
@@ -166,9 +186,8 @@ function App() {
       const country = row.country;
       const year = parseInt(row.year);
       const count = parseInt(row.collaboration_count);
-      const author_count = parseInt(row.author_count);
       const cit_count = parseInt(row.citation_count);
-      if (!isNaN(count) && !isNaN(year) && !isNaN(author_count) && !isNaN(cit_count)) {
+      if (!isNaN(count) && !isNaN(year) && !isNaN(cit_count)) {
         if (collaborationsByCountry[country]) {
           collaborationsByCountry[country].collabs += count;
         } else {
@@ -187,8 +206,6 @@ function App() {
         } else {
           yearsData[year] = { collabs: count, institutions: 1 };
         }
-        authorNumber += author_count;
-        workNumber += count;
         if (year < minYear) minYear = year;
         if (year > maxYear) maxYear = year;
       }
@@ -203,10 +220,20 @@ function App() {
       document.getElementById('maxYear').max = maxYear;
     }
 
-    document.getElementById('author_number').innerHTML = authorNumber; //check
+    try {
+      if (collaboratorsTab1.length === 0) {
+        throw new Error("No author found");
+      }
+      document.getElementById('author_number').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
+      if (collaborationsTab1.length === 0) {
+        throw new Error("No works found");
+      }
+      document.getElementById('work_number').innerHTML = parseInt(collaborationsTab1[0].total_works);
+    } catch (error) {
+    }
     document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
     document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
-    document.getElementById('work_number').innerHTML = workNumber;
+
     setCollaborationsByInstitutionTab1(collaborationsByInstitution);
     setCollaborationsByCountryTab1(collaborationsByCountry);
     setYearsDataTab1(yearsData);
@@ -277,7 +304,6 @@ function App() {
           `;
       }
     } catch (error) {
-      console.error("An error occurred while updating the map:", error);
     }
   }
 
@@ -337,7 +363,6 @@ function App() {
         });
       }
     } catch (error) {
-      console.error("An error occurred while updating the graph:", error);
     }
   }
 
