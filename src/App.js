@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Chart from 'chart.js/auto';
 
+// Server URL
 const API_BASE_URL = 'http://localhost:3000';
 
 function App() {
@@ -117,7 +118,6 @@ function App() {
     setSelectedFinishYearTab1(event.target.value);
     document.getElementById('minYear').max = year;
   };
-
   const handleInstitutionChangeTab1 = (event) => {
     const value = event.target.value;
     setInputInstitutionTab1(value);
@@ -126,7 +126,6 @@ function App() {
     );
     setSuggestionsInstitutionTab1(filteredSuggestions);
   };
-
   const handleSuggestionClickTab1 = (institution) => {
     setSelectedInstitutionTab1(institution.id_institution);
     setInputInstitutionTab1(institution.name);
@@ -136,9 +135,10 @@ function App() {
   // Values to populate the map
   const [unimiCollaborationsTab1, setUnimiCollaborationsTab1] = useState([]);
   const [collaborationsByCountryTab1, setCollaborationsByCountryTab1] = useState({});
+  const [yearsDataTab1, setYearsDataTab1] = useState({});
   const [collaborationsByInstitutionTab1, setCollaborationsByInstitutionTab1] = useState({});
 
-  // Refreshing map when filters are selected
+  // Refreshing values when filters are selected
   useEffect(() => {
     fetchData(`/institutionCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
@@ -194,7 +194,7 @@ function App() {
       }
     });
 
-    if (minYear <= 1966 && maxYear >= 2024) {
+    if (minYear <= 1966 && maxYear >= 2024) { //fix
       document.getElementById('minYear').placeholder = minYear;
       document.getElementById('maxYear').placeholder = maxYear;
       document.getElementById('minYear').min = minYear;
@@ -211,19 +211,31 @@ function App() {
     document.getElementById('work_number').innerHTML = workNumber;
     setCollaborationsByInstitutionTab1(collaborationsByInstitution);
     setCollaborationsByCountryTab1(collaborationsByCountry);
-    if (activeTab === 'tab1_1') {
-      updateMap(collaborationsByCountry);
-    }
-    if (activeTab === 'tab1_2') {
-      updateGraph(yearsData);
-    }
+    setYearsDataTab1(yearsData);
   }, [unimiCollaborationsTab1]);
 
+  // Upadating the graph
+  useEffect(() => {
+    if (activeTab === 'tab1_2') {
+      updateGraph();
+    }
+  }, [yearsDataTab1, activeTab]);
+
+  // Updating the map
+  useEffect(() => {
+    if (activeTab === 'tab1_1') {
+      updateMap();
+    }
+  }, [collaborationsByCountryTab1, activeTab]);
+
   // Instancing the map
-  function updateMap(collaborationsByCountry) {
-    setTimeout(function () {
+  function updateMap() {
+    try {
       if (activeTab === 'tab1_1') {
         const mapContainer = document.getElementById('svgMapTab1');
+        if (!mapContainer) {
+          throw new Error("Element with ID 'svgMapTab1' not found");
+        }
         mapContainer.innerHTML = '';
         const map = new svgMap({
           targetElementID: 'svgMapTab1',
@@ -236,45 +248,57 @@ function App() {
               }
             },
             applyData: 'collabs',
-            values: collaborationsByCountry
+            values: collaborationsByCountryTab1
           }
         });
+
         // Legend
         const colorMax = '#CC0033';
         const colorMin = '#FFE5D9';
         const colorNoData = '#E2E2E2';
-
         var maxValue = 0;
-        Object.keys(collaborationsByCountry).forEach(country => {
-          if (collaborationsByCountry[country].collabs > maxValue) {
-            maxValue = collaborationsByCountry[country].collabs;
+        Object.keys(collaborationsByCountryTab1).forEach(country => {
+          if (collaborationsByCountryTab1[country].collabs > maxValue) {
+            maxValue = collaborationsByCountryTab1[country].collabs;
           }
         });
-
-        document.getElementById('mapLegendTab1').innerHTML = `
-        <div class="legend-label">Number of Collaborations: </div>
-        <div class="legend-items">
-        <div class="legend-item" style="background-color: ${colorNoData};">0</div>
-        <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
-        <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
-        </div>
-      `;
+        const legendElement = document.getElementById('mapLegendTab1');
+        if (!legendElement) {
+          throw new Error("Element with ID 'mapLegendTab1' not found");
+        }
+        legendElement.innerHTML = `
+            <div class="legend-label">Number of Collaborations: </div>
+            <div class="legend-items">
+            <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+            <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
+            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
+            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
+            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
+            <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+            </div>
+          `;
       }
-    }, 1000);
+    } catch (error) {
+      console.error("An error occurred while updating the map:", error);
+      updateMap();
+    }
   }
 
   // Update graph
   const graphRef = useRef(null);
-  function updateGraph(yearsData) {
-    setTimeout(function () {
+  function updateGraph() {
+    try {
       if (activeTab === 'tab1_2') {
-        const labels = Object.keys(yearsData).map(year => parseInt(year));
-        const collabsData = Object.values(yearsData).map(data => data.collabs);
-        const institutionsData = Object.values(yearsData).map(data => data.institutions);
+        if (!graphRef.current) {
+          throw new Error("Graph reference is null");
+        }
+        const labels = Object.keys(yearsDataTab1).map(year => parseInt(year));
+        const collabsData = Object.values(yearsDataTab1).map(data => data.collabs);
+        const institutionsData = Object.values(yearsDataTab1).map(data => data.institutions);
         const ctx = graphRef.current.getContext('2d');
+        if (!ctx) {
+          throw new Error("Unable to get 2D context from graph reference");
+        }
         if (window.myChart instanceof Chart) {
           window.myChart.destroy();
         }
@@ -290,7 +314,7 @@ function App() {
                 fill: false
               },
               {
-                label: 'Istitutions',
+                label: 'Institutions',
                 data: institutionsData,
                 borderColor: 'green',
                 fill: false
@@ -315,7 +339,10 @@ function App() {
           }
         });
       }
-    }, 1000);
+    } catch (error) {
+      console.error("An error occurred while updating the graph:", error);
+      updateGraph();
+    }
   }
 
   // TAB 2
@@ -345,17 +372,6 @@ function App() {
   }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab2, selectedOpenAccessStatusTab2, selectedSdgTab2]);
 
   // TAB 3
-  // Filters Values
-
-
-  // Update filter values
-
-
-  // Values to populate the table
-
-
-  // Refreshing table when filters are selected
-
 
   return (
     <div className="App container-fluid">
@@ -449,7 +465,7 @@ function App() {
                             <div className='col-md-5'>
                               <div className="number-box">
                                 <div id='author_number' className='number'></div>
-                                <div className='text'>Collaborating authors</div>
+                                <div className='text'>Collaborators</div>
                               </div>
                             </div>
                             <div className='col-md-5'>
@@ -517,45 +533,27 @@ function App() {
                           </div>
                           <div className="tab-pane fade" id="tab1list" role="tabpanel" aria-labelledby="tab1-tab1list">
                             <div id='list-view'>
-                              <div id='table-view' className='row'>
-                                <div id='listTab1' className="col-md-8 table-container">
-                                  <table className="table">
-                                    <thead>
-                                      <tr>
-                                        <th><span>Institution Name</span></th>
-                                        <th><span>Country</span></th>
-                                        <th><span>Collaborations</span></th>
+                              <div id='table-view' className='row table-container'>
+                                <table className="table">
+                                  <thead>
+                                    <tr>
+                                      <th><span>Institution Name</span></th>
+                                      <th><span>Country</span></th>
+                                      <th><span>Collaborations</span></th>
+                                      <th><span>Citations</span></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
+                                      <tr key={index}>
+                                        <td>{institution}</td>
+                                        <td>{data.country}</td>
+                                        <td>{data.collabs}</td>
+                                        <td>{data.citations}</td>
                                       </tr>
-                                    </thead>
-                                    <tbody>
-                                      {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
-                                        <tr key={index}>
-                                          <td>{institution}</td>
-                                          <td>{data.country}</td>
-                                          <td>{data.collabs}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                                <div id='citTab1' className="col-md-4 table-container">
-                                  <table className="table">
-                                    <thead>
-                                      <tr>
-                                        <th><span>Institution Name</span></th>
-                                        <th><span>Citations</span></th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {Object.entries(collaborationsByInstitutionTab1).map(([institution, data], index) => (
-                                        <tr key={index}>
-                                          <td>{institution}</td>
-                                          <td>{data.citations}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
                               <div id='graph'>
                                 <canvas ref={graphRef} id='graph-wrapper'></canvas>
