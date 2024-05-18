@@ -277,31 +277,49 @@ function App() {
           }
         });
 
+        var svgDocument = document.querySelector('#svgMapTab1 svg');
+        var maxValue = Math.max(...Object.values(collaborationsByCountryTab1).map(country => country.collabs));
+
+        for (var country in collaborationsByCountryTab1) {
+          var value = collaborationsByCountryTab1[country].collabs;
+          var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
+
+          if (element) {
+            var bbox = element.getBBox();
+            var centerX = bbox.x + bbox.width / 2;
+            var centerY = bbox.y + bbox.height / 2;
+            var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute('x', centerX);
+            text.setAttribute('y', centerY);
+            text.setAttribute('dy', '0.3em');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('fill', '#000');
+            text.setAttribute('font-size', '10px');
+            text.setAttribute('font-weight', 'bold');
+            text.textContent = value;
+            svgDocument.appendChild(text);
+          }
+        }
+
         // Legend
         const colorMax = '#CC0033';
         const colorMin = '#FFE5D9';
         const colorNoData = '#E2E2E2';
-        var maxValue = 0;
-        Object.keys(collaborationsByCountryTab1).forEach(country => {
-          if (collaborationsByCountryTab1[country].collabs > maxValue) {
-            maxValue = collaborationsByCountryTab1[country].collabs;
-          }
-        });
         const legendElement = document.getElementById('mapLegendTab1');
         if (!legendElement) {
           throw new Error("Element with ID 'mapLegendTab1' not found");
         }
         legendElement.innerHTML = `
-            <div class="legend-label">Number of Collaborations: </div>
-            <div class="legend-items">
-            <div class="legend-item" style="background-color: ${colorNoData};">0</div>
-            <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
-            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
-            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
-            <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
-            <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
-            </div>
-          `;
+          <div class="legend-label">Number of Collaborations: </div>
+          <div class="legend-items">
+          <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+          <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
+          <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+          </div>
+        `;
       }
     } catch (error) {
     }
