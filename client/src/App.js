@@ -78,7 +78,7 @@ function App() {
     });
   };
 
-  // Resetting sorting when switching tab
+  // Resetting sort when switching tab
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setSortColumn(null);
