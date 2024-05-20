@@ -5,7 +5,7 @@ import 'svgmap/dist/svgMap.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Chart from 'chart.js/auto';
-import svgPanZoom from 'svg-pan-zoom';
+//import svgPanZoom from 'svg-pan-zoom';
 
 // Server URL
 const API_BASE_URL = 'http://localhost:3000';
@@ -254,78 +254,100 @@ function App() {
     updateGraph();
   }, [unimiCollaborationsTab1]);
 
+  // Upadating the graph
   useEffect(() => {
-    updateMap();
-  }, [activeTab]);
+    if (activeTab === 'tab1_2') {
+      updateGraph();
+    }
+    setTimeout(() => {
+      if (activeTab === 'tab1_2') {
+        updateGraph();
+      }
+    }, 500);
+  }, [yearsDataTab1, activeTab]);
 
+  // Updating the map
   useEffect(() => {
-    updateGraph();
-  }, [activeTab]);
+    if (activeTab === 'tab1_1') {
+      updateMap();
+    }
+    setTimeout(() => {
+      if (activeTab === 'tab1_1') {
+        updateMap();
+      }
+    }, 500);
+  }, [collaborationsByCountryTab1, activeTab]);
 
   // Instancing the map
   const updateMap = () => {
-    setTimeout(() => {
-      try {
-        if (activeTab === 'tab1_1') {
-          const mapContainer = document.getElementById('svgMapTab1');
-          if (!mapContainer) {
-            throw new Error("Element with ID 'svgMapTab1' not found");
-          }
-          mapContainer.innerHTML = '';
-          const map = new svgMap({
-            targetElementID: 'svgMapTab1',
+    try {
+      if (activeTab === 'tab1_1') {
+        const mapContainer = document.getElementById('svgMapTab1');
+        if (!mapContainer) {
+          throw new Error("Element with ID 'svgMapTab1' not found");
+        }
+        mapContainer.innerHTML = '';
+        const map = new svgMap({
+          targetElementID: 'svgMapTab1',
+          data: {
             data: {
-              data: {
-                collabs: {
-                  name: 'Number of collaborations',
-                  format: '{0}',
-                  thousandSeparator: '\''
-                }
-              },
-              applyData: 'collabs',
-              values: collaborationsByCountryTab1
-            }
-          });
-
-          var maxValue = Math.max(...Object.values(collaborationsByCountryTab1).map(country => country.collabs));
-
-          // Add markers to map
-          var svgDocument = document.querySelector('#svgMapTab1 svg');
-
-          const addMarkers = (svgDocument) => {
-            for (var country in collaborationsByCountryTab1) {
-              var value = collaborationsByCountryTab1[country].collabs;
-              var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
-              if (element) {
-                var bbox = element.getBBox();
-                var centerX = (bbox.x + (bbox.width / 2)) / 1.63;
-                var centerY = (bbox.y + (bbox.height / 2)) / 1.7;
-                var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                text.setAttribute('x', centerX);
-                text.setAttribute('y', centerY);
-                text.setAttribute('dy', '0.3em');
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('fill', '#000');
-                text.setAttribute('font-size', '10px');
-                text.setAttribute('font-weight', 'bold');
-                text.textContent = value;
-                text.classList.add('country-marker');
-                svgDocument.appendChild(text);
+              collabs: {
+                name: 'Number of collaborations',
+                format: '{0}',
+                thousandSeparator: '\''
               }
-            }
-          };
-
-          addMarkers(svgDocument);
-
-          // Legend
-          const colorMax = map.colorMax; //'#CC0033'
-          const colorMin = map.colorMin; //'#FFE5D9'
-          const colorNoData = map.colorNoData; //'#E2E2E2'
-          const legendElement = document.getElementById('mapLegendTab1');
-          if (!legendElement) {
-            throw new Error("Element with ID 'mapLegendTab1' not found");
+            },
+            applyData: 'collabs',
+            values: collaborationsByCountryTab1
           }
-          legendElement.innerHTML = `
+        });
+
+        //const maxValue = Math.max(...Object.values(collaborationsByCountryTab1).map(country => country.collabs));
+        var maxValue = 0;
+        Object.keys(collaborationsByCountryTab1).forEach(country => {
+          if (collaborationsByCountryTab1[country].collabs > maxValue) {
+            maxValue = collaborationsByCountryTab1[country].collabs;
+          }
+        });
+
+        // Add markers to map
+        /*var svgDocument = document.querySelector('#svgMapTab1 svg');
+        const addMarkers = (svgDocument) => {
+          for (var country in collaborationsByCountryTab1) {
+            var value = collaborationsByCountryTab1[country].collabs;
+            var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
+            if (element) {
+              var bbox = element.getBBox();
+              var centerX = (bbox.x + (bbox.width / 2)) / 1.63;
+              var centerY = (bbox.y + (bbox.height / 2)) / 1.7;
+              var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              text.setAttribute('x', centerX);
+              text.setAttribute('y', centerY);
+              text.setAttribute('dy', '0.3em');
+              text.setAttribute('text-anchor', 'middle');
+              text.setAttribute('fill', '#000');
+              text.setAttribute('font-size', '10px');
+              text.setAttribute('font-weight', 'bold');
+              text.textContent = value;
+              text.classList.add('country-marker');
+              svgDocument.appendChild(text);
+            }
+          }
+        };
+        addMarkers(svgDocument);*/
+
+        // Legend
+        //const colorMax = map.colorMax; //'#CC0033'
+        //const colorMin = map.colorMin; //'#FFE5D9'
+        //const colorNoData = map.colorNoData; //'#E2E2E2'
+        const colorMax = '#CC0033';
+        const colorMin = '#FFE5D9';
+        const colorNoData = '#E2E2E2';
+        const legend = document.getElementById('mapLegendTab1');
+        if (!legend) {
+          throw new Error("Element with ID 'mapLegendTab1' not found");
+        }
+        legend.innerHTML = `
           <div class="legend-label">Number of Collaborations: </div>
           <div class="legend-items">
           <div class="legend-item" style="background-color: ${colorNoData};">0</div>
@@ -336,71 +358,68 @@ function App() {
           <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
           </div>
         `;
-        }
-      } catch (error) {
       }
-    }, 1000);
+    } catch (error) {
+    }
   };
 
   // Update graph
   const graphRef = useRef(null);
   const updateGraph = () => {
-    setTimeout(() => {
-      try {
-        if (activeTab === 'tab1_2') {
-          if (!graphRef.current) {
-            throw new Error("Graph reference is null");
-          }
-          const labels = Object.keys(yearsDataTab1).map(year => parseInt(year));
-          const collabsData = Object.values(yearsDataTab1).map(data => data.collabs);
-          const institutionsData = Object.values(yearsDataTab1).map(data => data.institutions);
-          const ctx = graphRef.current.getContext('2d');
-          if (!ctx) {
-            throw new Error("Unable to get 2D context from graph reference");
-          }
-          if (window.myChart instanceof Chart) {
-            window.myChart.destroy();
-          }
-          window.myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: 'Works',
-                  data: collabsData,
-                  borderColor: 'blue',
-                  fill: false
-                },
-                {
-                  label: 'Institutions',
-                  data: institutionsData,
-                  borderColor: 'green',
-                  fill: false
+    try {
+      if (activeTab === 'tab1_2') {
+        if (!graphRef.current) {
+          throw new Error("Graph reference is null");
+        }
+        const labels = Object.keys(yearsDataTab1).map(year => parseInt(year));
+        const collabsData = Object.values(yearsDataTab1).map(data => data.collabs);
+        const institutionsData = Object.values(yearsDataTab1).map(data => data.institutions);
+        const ctx = graphRef.current.getContext('2d');
+        if (!ctx) {
+          throw new Error("Unable to get 2D context from graph reference");
+        }
+        if (window.myChart instanceof Chart) {
+          window.myChart.destroy();
+        }
+        window.myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Works',
+                data: collabsData,
+                borderColor: 'blue',
+                fill: false
+              },
+              {
+                label: 'Institutions',
+                data: institutionsData,
+                borderColor: 'green',
+                fill: false
+              }
+            ]
+          },
+          options: {
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Year'
                 }
-              ]
-            },
-            options: {
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: 'Year'
-                  }
-                },
-                y: {
-                  title: {
-                    display: true,
-                    text: 'Count'
-                  }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Count'
                 }
               }
             }
-          });
-        }
-      } catch (error) {
+          }
+        });
       }
-    }, 1000);
+    } catch (error) {
+    }
   }
 
   // TAB 2
@@ -522,13 +541,13 @@ function App() {
                           <div className="row g-0 justify-content-around">
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='author_number' className='number'></div>
+                                <div id='author_number' className='number'>0</div>
                                 <div className='text'>Collaborators</div>
                               </div>
                             </div>
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='country_number' className='number'></div>
+                                <div id='country_number' className='number'>0</div>
                                 <div className='text'>Countries</div>
                               </div>
                             </div>
@@ -536,13 +555,13 @@ function App() {
                           <div className="row g-0 justify-content-around">
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='institution_number' className='number'></div>
+                                <div id='institution_number' className='number'>0</div>
                                 <div className='text'>Institutions</div>
                               </div>
                             </div>
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='work_number' className='number'></div>
+                                <div id='work_number' className='number'>0</div>
                                 <div className='text'>Works</div>
                               </div>
                             </div>
@@ -634,7 +653,7 @@ function App() {
                                       institution_name: institution,
                                       country: data.country,
                                       collabs: data.collabs,
-                                      citations: data.citations,
+                                      citations: data.citations
                                     }))).map((collaboration, index) => (
                                       <tr key={index}>
                                         <td>{collaboration.institution_name}</td>

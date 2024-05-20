@@ -105,7 +105,7 @@ app.get('/institutionCollaborations', (req, res) => {
   ${startYear ? `AND W.year >= ${startYear}` : ''}
   ${finishYear ? `AND W.year <= ${finishYear}` : ''}
   GROUP BY I.name, I.country_code, W.year
-  ORDER BY collaboration_count DESC;`;
+  ORDER BY collaboration_count DESC`;
   request(query, res);
 });
 
