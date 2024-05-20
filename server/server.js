@@ -74,6 +74,11 @@ app.get('/institutions', (req, res) => {
   request(query, res);
 });
 
+app.get('/year', (req, res) => {
+  const query = `SELECT MIN(year) AS minyear, MAX(year) AS maxyear FROM Work`;
+  request(query, res);
+});
+
 // First tab request for Unimi collaborations with all other institutions
 app.get('/institutionCollaborations', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;

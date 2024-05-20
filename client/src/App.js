@@ -5,6 +5,7 @@ import 'svgmap/dist/svgMap.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Chart from 'chart.js/auto';
+import svgPanZoom from 'svg-pan-zoom';
 
 // Server URL
 const API_BASE_URL = 'http://localhost:3000';
@@ -35,8 +36,8 @@ function App() {
   }, []);
 
   // Request for a resource
-  const fetchData = (endpoint, setter) => {
-    fetch(API_BASE_URL + endpoint)
+  const fetchData = async (endpoint, setter) => {
+    await fetch(API_BASE_URL + endpoint)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -102,6 +103,31 @@ function App() {
   const [selectedFinishYearTab1, setSelectedFinishYearTab1] = useState('');
   const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
+
+  useEffect(() => {
+    const fetchYears = async () => {
+      await fetch(API_BASE_URL + '/year')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const minYear = parseInt(data[0].minyear);
+          const maxYear = parseInt(data[0].maxyear);
+          document.getElementById('minYear').placeholder = minYear;
+          document.getElementById('maxYear').placeholder = maxYear;
+          document.getElementById('minYear').min = minYear;
+          document.getElementById('maxYear').min = minYear;
+          document.getElementById('minYear').max = maxYear;
+          document.getElementById('maxYear').max = maxYear;
+        })
+        .catch(error => console.error(`Error fetching data from years:`, error));
+    };
+    fetchYears();
+  }, []);
+
 
   // Update filter values
   const handleDepartmentChangeTab1 = event => setSelectedDepartmentTab1(event.target.value);
@@ -178,8 +204,6 @@ function App() {
     const collaborationsByCountry = {};
     const collaborationsByInstitution = {};
     const yearsData = {};
-    var minYear = 2100;
-    var maxYear = 0;
 
     unimiCollaborationsTab1.forEach(row => {
       const institution = row.institution_name;
@@ -206,19 +230,8 @@ function App() {
         } else {
           yearsData[year] = { collabs: count, institutions: 1 };
         }
-        if (year < minYear) minYear = year;
-        if (year > maxYear) maxYear = year;
       }
     });
-
-    if (minYear <= 1966 && maxYear >= 2024) { //fix
-      document.getElementById('minYear').placeholder = minYear;
-      document.getElementById('maxYear').placeholder = maxYear;
-      document.getElementById('minYear').min = minYear;
-      document.getElementById('maxYear').min = minYear;
-      document.getElementById('minYear').max = maxYear;
-      document.getElementById('maxYear').max = maxYear;
-    }
 
     try {
       if (collaboratorsTab1.length === 0) {
@@ -250,7 +263,7 @@ function App() {
   }, [activeTab]);
 
   // Instancing the map
-  function updateMap() {
+  const updateMap = () => {
     setTimeout(() => {
       try {
         if (activeTab === 'tab1_1') {
@@ -277,26 +290,32 @@ function App() {
           var maxValue = Math.max(...Object.values(collaborationsByCountryTab1).map(country => country.collabs));
 
           // Add markers to map
-          /*var svgDocument = document.querySelector('#svgMapTab1 svg');
-          for (var country in collaborationsByCountryTab1) {
-            var value = collaborationsByCountryTab1[country].collabs;
-            var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
-            if (element) {
-              var bbox = element.getBBox();
-              var centerX = (bbox.x + (bbox.width / 2)) / 1.63;
-              var centerY = (bbox.y + (bbox.height / 2)) / 1.7;
-              var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              text.setAttribute('x', centerX);
-              text.setAttribute('y', centerY);
-              text.setAttribute('dy', '0.3em');
-              text.setAttribute('text-anchor', 'middle');
-              text.setAttribute('fill', '#000');
-              text.setAttribute('font-size', '6px');
-              text.setAttribute('font-weight', 'bold');
-              text.textContent = value;
-              svgDocument.appendChild(text);
+          var svgDocument = document.querySelector('#svgMapTab1 svg');
+
+          const addMarkers = (svgDocument) => {
+            for (var country in collaborationsByCountryTab1) {
+              var value = collaborationsByCountryTab1[country].collabs;
+              var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
+              if (element) {
+                var bbox = element.getBBox();
+                var centerX = (bbox.x + (bbox.width / 2)) / 1.63;
+                var centerY = (bbox.y + (bbox.height / 2)) / 1.7;
+                var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute('x', centerX);
+                text.setAttribute('y', centerY);
+                text.setAttribute('dy', '0.3em');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#000');
+                text.setAttribute('font-size', '10px');
+                text.setAttribute('font-weight', 'bold');
+                text.textContent = value;
+                text.classList.add('country-marker');
+                svgDocument.appendChild(text);
+              }
             }
-          }*/
+          };
+
+          addMarkers(svgDocument);
 
           // Legend
           const colorMax = map.colorMax; //'#CC0033'
@@ -321,11 +340,11 @@ function App() {
       } catch (error) {
       }
     }, 1000);
-  }
+  };
 
   // Update graph
   const graphRef = useRef(null);
-  function updateGraph() {
+  const updateGraph = () => {
     setTimeout(() => {
       try {
         if (activeTab === 'tab1_2') {
