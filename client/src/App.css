@@ -172,6 +172,7 @@ input[type=text] {
   height: 30px;
   text-align: center;
   line-height: 30px;
+  font-size: 14px;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
 }
