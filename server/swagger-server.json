@@ -89,6 +89,69 @@
         }
       }
     },
+    "/year": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/mapCollaborations": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "institution",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "domainFieldSubfield",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "openAccessStatus",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sdg",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startYear",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "finishYear",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/institutionCollaborations": {
       "get": {
         "description": "",
@@ -115,6 +178,116 @@
           },
           {
             "name": "sdg",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startYear",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "finishYear",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/collaborators": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "institution",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "domainFieldSubfield",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "openAccessStatus",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sdg",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startYear",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "finishYear",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/collaborations": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "institution",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "domainFieldSubfield",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "openAccessStatus",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sdg",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startYear",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "finishYear",
             "in": "query",
             "type": "string"
           }
