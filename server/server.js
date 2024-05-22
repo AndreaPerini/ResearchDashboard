@@ -28,6 +28,7 @@ async function request(query, res) {
       client.release();
     }
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Errore nella connessione al database o nella query' });
   }
 }
