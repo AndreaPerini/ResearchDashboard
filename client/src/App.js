@@ -24,19 +24,28 @@ function App() {
   // Track active tab
   const [activeTab, setActiveTab] = useState('tab1_1');
 
+  const abortControllerRef = useRef(null);
+
   // Filters requests
   useEffect(() => {
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     fetchData('/departments', setDepartments);
     fetchData('/domainFieldSubfields', setDomainFieldSubfields);
     fetchData('/openAccessStatuses', setOpenAccessStatuses);
     fetchData('/sdgs', setSdgs);
     fetchData('/authors', setAuthors);
     fetchData('/institutions', setInstitutions);
+
+    return () => {
+      abortControllerRef.current.abort();
+    };
   }, []);
 
   // Request for a resource
-  const fetchData = async (endpoint, setter) => {
-    await fetch(API_BASE_URL + endpoint)
+  const fetchData = async (endpoint, setter, signal) => {
+    await fetch(API_BASE_URL + endpoint, { signal })
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -104,8 +113,9 @@ function App() {
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
 
   useEffect(() => {
+    const signal = abortControllerRef.current.signal;
     const fetchYears = async () => {
-      await fetch(API_BASE_URL + '/year')
+      await fetch(API_BASE_URL + '/year', { signal })
         .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -168,6 +178,8 @@ function App() {
 
   // Refreshing values when filters are selected
   useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+
     fetchData(`/mapCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
@@ -176,7 +188,7 @@ function App() {
       sdg: selectedSdgTab1,
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
-    })}`, setMapCollaborationsTab1);
+    })}`, setMapCollaborationsTab1, signal);
 
     fetchData(`/institutionCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
@@ -186,7 +198,7 @@ function App() {
       sdg: selectedSdgTab1,
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
-    })}`, setInstitutionCollaborationsTab1);
+    })}`, setInstitutionCollaborationsTab1, signal);
 
     fetchData(`/collaborators?${new URLSearchParams({
       institution: selectedInstitutionTab1,
@@ -196,7 +208,7 @@ function App() {
       sdg: selectedSdgTab1,
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
-    })}`, setCollaboratorsTab1);
+    })}`, setCollaboratorsTab1, signal);
 
     fetchData(`/collaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
@@ -206,7 +218,7 @@ function App() {
       sdg: selectedSdgTab1,
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
-    })}`, setCollaborationsTab1);
+    })}`, setCollaborationsTab1, signal);
   }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
 
   // Updating data for map and stats
@@ -587,7 +599,7 @@ function App() {
                       </div>
                     </div>
                     <div className="row justify-content-around">
-                      <div id='tab1-left' className="col-md-3">
+                      <div id='tab1-left' className="col-md-4">
                         <div id='statistics'>
                           <div className="row g-0 justify-content-around">
                             <div className='col-md-5'>

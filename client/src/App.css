@@ -96,15 +96,16 @@ body {
 
 #table-top10 {
   flex: 0 0 auto;
-  height: 73%;
+  height: 75%;
 }
 
 #statistics {
   display: flex;
   flex-direction: column;
-  height: 27%;
+  height: 25%;
   align-items: stretch;
   flex: 0 0 auto;
+  margin-bottom: 20px;
 }
 
 .number-box {
@@ -115,7 +116,7 @@ body {
   align-items: center;
   font-family: Arial, sans-serif;
   border: 1px solid black;
-  margin: 10px;
+  margin: 5px;
 }
 
 .number {
