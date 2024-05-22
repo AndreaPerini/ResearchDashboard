@@ -92,18 +92,17 @@ body {
 #tab1-left {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
 #table-top10 {
   flex: 0 0 auto;
-  height: 70%;
+  height: 73%;
 }
 
 #statistics {
   display: flex;
   flex-direction: column;
-  height: 30%;
+  height: 27%;
   align-items: stretch;
   flex: 0 0 auto;
 }
@@ -120,7 +119,7 @@ body {
 }
 
 .number {
-  font-size: clamp(16px, 30px, 36px);
+  font-size: clamp(14px, 28px, 32px);
 }
 
 .text {
