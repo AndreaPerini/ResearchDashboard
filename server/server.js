@@ -52,43 +52,43 @@ app.listen(port, () => {
 
 // Requests to populate filters
 // Get all Unimi departments
-app.get('/departments', (req, res) => {
+app.get('/departments', (_, res) => {
   const query = `SELECT * FROM Department ORDER BY name`;
   request(query, res);
 });
 
 // Get all Subfields, degree to select hierarchy (1 = domain, 2 = field, 3 = subfield)
-app.get('/domainFieldSubfields', (req, res) => {
+app.get('/domainFieldSubfields', (_, res) => {
   const degree = 3;
   const query = `SELECT * FROM Domain_Field_Subfield WHERE degree = ${degree} ORDER BY name`;
   request(query, res);
 });
 
 // Get all Unimi departments
-app.get('/openAccessStatuses', (req, res) => {
+app.get('/openAccessStatuses', (_, res) => {
   const query = `SELECT DISTINCT openaccess_status FROM Work ORDER BY openaccess_status`;
   request(query, res);
 });
 
 // Get all sustainable development goals
-app.get('/sdgs', (req, res) => {
+app.get('/sdgs', (_, res) => {
   const query = `SELECT * FROM Sustainable_Development_Goals ORDER BY name`;
   request(query, res);
 });
 
 // Get all Unimi authors
-app.get('/authors', (req, res) => {
+app.get('/authors', (_, res) => {
   const query = `SELECT * FROM Author WHERE role IS NOT NULL ORDER BY surname, name`;
   request(query, res);
 });
 
 // Get all institutions
-app.get('/institutions', (req, res) => {
+app.get('/institutions', (_, res) => {
   const query = `SELECT * FROM Institution ORDER BY name`;
   request(query, res);
 });
 
-app.get('/year', async (req, res) => {
+app.get('/year', async (_, res) => {
   const query = `SELECT MIN(year) AS minyear, MAX(year) AS maxyear FROM Work`;
   request(query, res);
 });
