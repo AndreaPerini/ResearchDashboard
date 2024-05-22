@@ -5,7 +5,6 @@ import 'svgmap/dist/svgMap.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Chart from 'chart.js/auto';
-//import svgPanZoom from 'svg-pan-zoom';
 
 // Server URL
 const API_BASE_URL = 'http://localhost:3000';
@@ -302,7 +301,6 @@ function App() {
           }
         });
 
-        //const maxValue = Math.max(...Object.values(collaborationsByCountryTab1).map(country => country.collabs));
         var maxValue = 0;
         Object.keys(collaborationsByCountryTab1).forEach(country => {
           if (collaborationsByCountryTab1[country].collabs > maxValue) {
@@ -310,36 +308,7 @@ function App() {
           }
         });
 
-        // Add markers to map
-        /*var svgDocument = document.querySelector('#svgMapTab1 svg');
-        const addMarkers = (svgDocument) => {
-          for (var country in collaborationsByCountryTab1) {
-            var value = collaborationsByCountryTab1[country].collabs;
-            var element = svgDocument.querySelector('#svgMapTab1-map-country-' + country);
-            if (element) {
-              var bbox = element.getBBox();
-              var centerX = (bbox.x + (bbox.width / 2)) / 1.63;
-              var centerY = (bbox.y + (bbox.height / 2)) / 1.7;
-              var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              text.setAttribute('x', centerX);
-              text.setAttribute('y', centerY);
-              text.setAttribute('dy', '0.3em');
-              text.setAttribute('text-anchor', 'middle');
-              text.setAttribute('fill', '#000');
-              text.setAttribute('font-size', '10px');
-              text.setAttribute('font-weight', 'bold');
-              text.textContent = value;
-              text.classList.add('country-marker');
-              svgDocument.appendChild(text);
-            }
-          }
-        };
-        addMarkers(svgDocument);*/
-
         // Legend
-        //const colorMax = map.colorMax; //'#CC0033'
-        //const colorMin = map.colorMin; //'#FFE5D9'
-        //const colorNoData = map.colorNoData; //'#E2E2E2'
         const colorMax = '#CC0033';
         const colorMin = '#FFE5D9';
         const colorNoData = '#E2E2E2';
