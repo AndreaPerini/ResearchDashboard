@@ -192,3 +192,29 @@ app.get('/authorCollaborations', (req, res) => {
       ORDER BY collaboration_count DESC`;
   request(query, res);
 });
+
+// First tab request for Unimi collaborations with all other institutions
+app.get('/mapCollaborations', (req, res) => {
+  const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
+  const query = `
+  SELECT 
+  I.country_code AS country,
+  COUNT(DISTINCT AW1.id_work) AS collaboration_count
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
+  JOIN Institution AS I ON AW2.id_institution = I.id_institution
+  JOIN Work AS W ON W.id_work = AW1.id_work
+  JOIN Author AS A ON A.id_author = AW1.id_author
+  WHERE AW1.id_institution = 1 
+  AND AW2.id_institution != AW1.id_institution
+  ${institution ? `AND I.id_institution = ${institution}` : ''}  
+  ${department ? `AND A.id_department = ${department}` : ''}
+  ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+  ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+  ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+  ${startYear ? `AND W.year >= ${startYear}` : ''}
+  ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+  GROUP BY I.country_code
+  ORDER BY collaboration_count DESC`;
+  request(query, res);
+});
