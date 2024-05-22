@@ -31,12 +31,12 @@ function App() {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 
-    fetchData('/departments', setDepartments);
-    fetchData('/domainFieldSubfields', setDomainFieldSubfields);
-    fetchData('/openAccessStatuses', setOpenAccessStatuses);
-    fetchData('/sdgs', setSdgs);
-    fetchData('/authors', setAuthors);
-    fetchData('/institutions', setInstitutions);
+    fetchData('/departments', setDepartments, signal);
+    fetchData('/domainFieldSubfields', setDomainFieldSubfields, signal);
+    fetchData('/openAccessStatuses', setOpenAccessStatuses, signal);
+    fetchData('/sdgs', setSdgs, signal);
+    fetchData('/authors', setAuthors, signal);
+    fetchData('/institutions', setInstitutions, signal);
 
     return () => {
       abortControllerRef.current.abort();
@@ -282,70 +282,6 @@ function App() {
     updateMap();
     updateGraph();
   }, [institutionCollaborationsTab1, mapCollaborationsTab1]);
-
-  /*useEffect(() => {
-    const collaborationsByCountry = {};
-    mapCollaborationsTab1.forEach(row => {
-      const country = row.country;
-      const count = parseInt(row.collaboration_count);
-      if (!isNaN(count)) {
-        if (collaborationsByCountry[country]) {
-          collaborationsByCountry[country].collabs += count;
-        } else {
-          collaborationsByCountry[country] = { collabs: count };
-        }
-      }
-    });
-    document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
-    setCollaborationsByCountryTab1(collaborationsByCountry);
-    updateMap();
-  }, [mapCollaborationsTab1]);
-
-  useEffect(() => {
-    const collaborationsByInstitution = {};
-    const yearsData = {};
-
-    institutionCollaborationsTab1.forEach(row => {
-      const institution = row.institution_name;
-      const country = row.country;
-      const year = parseInt(row.year);
-      const count = parseInt(row.collaboration_count);
-      const cit_count = parseInt(row.citation_count);
-      if (!isNaN(count) && !isNaN(year) && !isNaN(cit_count)) {
-        if (collaborationsByInstitution[institution]) {
-          collaborationsByInstitution[institution].collabs += count;
-          collaborationsByInstitution[institution].citations += cit_count;
-        } else {
-          collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
-        }
-
-        if (yearsData[year]) {
-          yearsData[year].collabs += count;
-          yearsData[year].institutions++;
-        } else {
-          yearsData[year] = { collabs: count, institutions: 1 };
-        }
-      }
-    });
-    document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
-    setCollaborationsByInstitutionTab1(collaborationsByInstitution);
-    setYearsDataTab1(yearsData);
-    updateGraph();
-  }, [institutionCollaborationsTab1]);
-
-  useEffect(() => {
-    try {
-      if (collaboratorsTab1.length === 0) {
-        throw new Error("No author found");
-      }
-      document.getElementById('author_number').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
-      if (collaborationsTab1.length === 0) {
-        throw new Error("No works found");
-      }
-      document.getElementById('work_number').innerHTML = parseInt(collaborationsTab1[0].total_works);
-    } catch (error) {
-    }
-  }, [institutionCollaborationsTab1, mapCollaborationsTab1]);*/
 
   // Upadating the graph
   useEffect(() => {
