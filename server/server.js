@@ -3,8 +3,7 @@ const cors = require('cors');
 const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-server.json');
-const port = 3000;
-const { Pool } = require('pg');
+const port = 3001;
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
