@@ -22,7 +22,10 @@ async function request(query, res) {
   try {
     const client = await postgres.connect();
     try {
-      const result = await client.query(query);
+      const result = await client.query({
+        text: query,
+        statement_timeout: 20000
+      });
       res.json(result.rows);
     } finally {
       client.release();
@@ -31,6 +34,16 @@ async function request(query, res) {
     res.status(500).json({ error: 'Errore nella connessione al database o nella query' });
   }
 }
+
+const gracefulShutdown = () => {
+  console.log('Chiusura del server in corso...');
+  pool.end(() => {
+    process.exit(0);
+  });
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
 
 // Server port
 app.listen(port, () => {
