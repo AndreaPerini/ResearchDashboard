@@ -107,7 +107,7 @@ function App() {
   const [selectedOpenAccessStatusTab1, setSelectedOpenAccessStatusTab1] = useState('');
   const [selectedSdgTab1, setSelectedSdgTab1] = useState('');
   const [selectedInstitutionTab1, setSelectedInstitutionTab1] = useState([]);
-  const [selectedStartYearTab1, setSelectedStartYearTab1] = useState('');
+  const [selectedStartYearTab1, setSelectedStartYearTab1] = useState('2000');
   const [selectedFinishYearTab1, setSelectedFinishYearTab1] = useState('');
   const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
@@ -170,6 +170,7 @@ function App() {
   // Values to populate the map
   const [institutionCollaborationsTab1, setInstitutionCollaborationsTab1] = useState([]);
   const [mapCollaborationsTab1, setMapCollaborationsTab1] = useState([]);
+  const [yearsCollaborationsTab1, setYearsCollaborationsTab1] = useState([]);
   const [collaboratorsTab1, setCollaboratorsTab1] = useState([]);
   const [collaborationsTab1, setCollaborationsTab1] = useState([]);
   const [collaborationsByCountryTab1, setCollaborationsByCountryTab1] = useState({});
@@ -190,16 +191,6 @@ function App() {
       finishYear: selectedFinishYearTab1
     })}`, setMapCollaborationsTab1, signal);
 
-    fetchData(`/institutionCollaborations?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setInstitutionCollaborationsTab1, signal);
-
     fetchData(`/collaborators?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
@@ -219,69 +210,95 @@ function App() {
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
     })}`, setCollaborationsTab1, signal);
+
+    fetchData(`/institutionCollaborations?${new URLSearchParams({
+      institution: selectedInstitutionTab1,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+      openAccessStatus: selectedOpenAccessStatusTab1,
+      sdg: selectedSdgTab1,
+      startYear: selectedStartYearTab1,
+      finishYear: selectedFinishYearTab1
+    })}`, setInstitutionCollaborationsTab1, signal);
+
+    fetchData(`/yearsCollaborations?${new URLSearchParams({
+      institution: selectedInstitutionTab1,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+      openAccessStatus: selectedOpenAccessStatusTab1,
+      sdg: selectedSdgTab1,
+      startYear: selectedStartYearTab1,
+      finishYear: selectedFinishYearTab1
+    })}`, setYearsCollaborationsTab1, signal);
   }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
 
-  // Updating data for map and stats
+  // Updating data for the map
   useEffect(() => {
     const collaborationsByCountry = {};
-    const collaborationsByInstitution = {};
-    const yearsData = {};
-
     mapCollaborationsTab1.forEach(row => {
       const country = row.country;
       const count = parseInt(row.collaboration_count);
       if (!isNaN(count)) {
-        if (collaborationsByCountry[country]) {
-          collaborationsByCountry[country].collabs += count;
-        } else {
-          collaborationsByCountry[country] = { collabs: count };
-        }
+        collaborationsByCountry[country] = { collabs: count };
       }
     });
+    document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
+    setCollaborationsByCountryTab1(collaborationsByCountry);
+    updateMap();
+  }, [mapCollaborationsTab1]);
 
+  // Updating data for the table
+  useEffect(() => {
+    const collaborationsByInstitution = {};
     institutionCollaborationsTab1.forEach(row => {
       const institution = row.institution_name;
       const country = row.country;
-      const year = parseInt(row.year);
       const count = parseInt(row.collaboration_count);
       const cit_count = parseInt(row.citation_count);
-      if (!isNaN(count) && !isNaN(year) && !isNaN(cit_count)) {
-        if (collaborationsByInstitution[institution]) {
-          collaborationsByInstitution[institution].collabs += count;
-          collaborationsByInstitution[institution].citations += cit_count;
-        } else {
-          collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
-        }
-
-        if (yearsData[year]) {
-          yearsData[year].collabs += count;
-          yearsData[year].institutions++;
-        } else {
-          yearsData[year] = { collabs: count, institutions: 1 };
-        }
+      if (!isNaN(count) && !isNaN(cit_count)) {
+        collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
       }
     });
+    document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
+    setCollaborationsByInstitutionTab1(collaborationsByInstitution);
+  }, [institutionCollaborationsTab1]);
 
+  // Updating data for the graph
+  useEffect(() => {
+    const yearsData = {};
+    yearsCollaborationsTab1.forEach(row => {
+      const year = parseInt(row.year);
+      const inst = parseInt(row.institution_count);
+      const coll = parseInt(row.collaboration_count);
+      if (!isNaN(year) && !isNaN(inst) && !isNaN(coll)) {
+        yearsData[year] = { collabs: coll, institutions: inst };
+      }
+    });
+    setYearsDataTab1(yearsData);
+    updateGraph();
+  }, [yearsCollaborationsTab1]);
+
+  // Updating data for the collaborators number
+  useEffect(() => {
     try {
       if (collaboratorsTab1.length === 0) {
         throw new Error("No author found");
       }
       document.getElementById('author_number').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
+    } catch (error) {
+    }
+  }, [collaboratorsTab1]);
+
+  // Updating data for the collaborations number
+  useEffect(() => {
+    try {
       if (collaborationsTab1.length === 0) {
         throw new Error("No works found");
       }
       document.getElementById('work_number').innerHTML = parseInt(collaborationsTab1[0].total_works);
     } catch (error) {
     }
-    document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
-    document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
-
-    setCollaborationsByInstitutionTab1(collaborationsByInstitution);
-    setCollaborationsByCountryTab1(collaborationsByCountry);
-    setYearsDataTab1(yearsData);
-    updateMap();
-    updateGraph();
-  }, [institutionCollaborationsTab1, mapCollaborationsTab1]);
+  }, [collaborationsTab1]);
 
   // Upadating the graph
   useEffect(() => {

@@ -18,15 +18,18 @@ app.use(cors());
 const postgres = require('./postgres');
 
 // Request to the database
-function request(query, res) {
-  postgres.query(query, (error, results) => {
-    if (error) {
-      console.error('Errore: ', error);
-      res.status(500).json({ error: 'Errore' });
-    } else {
-      res.json(results.rows);
+async function request(query, res) {
+  try {
+    const client = await postgres.connect();
+    try {
+      const result = await client.query(query);
+      res.json(result.rows);
+    } finally {
+      client.release();
     }
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nella connessione al database o nella query' });
+  }
 }
 
 // Server port
@@ -72,7 +75,7 @@ app.get('/institutions', (req, res) => {
   request(query, res);
 });
 
-app.get('/year', (req, res) => {
+app.get('/year', async (req, res) => {
   const query = `SELECT MIN(year) AS minyear, MAX(year) AS maxyear FROM Work`;
   request(query, res);
 });
@@ -110,12 +113,11 @@ app.get('/institutionCollaborations', (req, res) => {
   SELECT 
   I.name AS institution_name,
   I.country_code AS country,
-  W.year AS year,
   COUNT(DISTINCT AW1.id_work) AS collaboration_count,
   SUM(COALESCE(C.count, 0)) AS citation_count
   FROM Author_Work AS AW1
   JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
-  JOIN Institution AS I ON AW2.id_institution = I.id_institution
+  LEFT JOIN Institution AS I ON AW2.id_institution = I.id_institution
   JOIN Work AS W ON W.id_work = AW1.id_work
   ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
   LEFT JOIN Citation AS C ON C.id_work = AW1.id_work
@@ -128,8 +130,33 @@ app.get('/institutionCollaborations', (req, res) => {
   ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
   ${startYear ? `AND W.year >= ${startYear}` : ''}
   ${finishYear ? `AND W.year <= ${finishYear}` : ''}
-  GROUP BY I.name, I.country_code, W.year
+  GROUP BY I.name, I.country_code
   ORDER BY collaboration_count DESC`;
+  request(query, res);
+});
+
+// First tab request for Unimi collaborations each year
+app.get('/yearsCollaborations', (req, res) => {
+  const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
+  const query = `
+  SELECT 
+  W.year AS year,
+  COUNT(DISTINCT AW2.id_institution) AS institution_count,
+  COUNT(DISTINCT AW1.id_work) AS collaboration_count
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
+  JOIN Work AS W ON W.id_work = AW1.id_work
+  ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
+  WHERE AW1.id_institution = 1 
+  AND AW2.id_institution != AW1.id_institution
+  ${institution ? `AND AW2.id_institution = ${institution}` : ''}  
+  ${department ? `AND A.id_department = ${department}` : ''}
+  ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+  ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+  ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+  ${startYear ? `AND W.year >= ${startYear}` : ''}
+  ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+  GROUP BY W.year`;
   request(query, res);
 });
 
