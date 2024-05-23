@@ -35,16 +35,6 @@ async function request(query, res) {
   }
 }
 
-const gracefulShutdown = () => {
-  console.log('Chiusura del server in corso...');
-  pool.end(() => {
-    process.exit(0);
-  });
-};
-
-process.on('SIGINT', gracefulShutdown);
-process.on('SIGTERM', gracefulShutdown);
-
 // Server port
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
@@ -53,14 +43,14 @@ app.listen(port, () => {
 // Requests to populate filters
 // Get all Unimi departments
 app.get('/departments', (_, res) => {
-  const query = `SELECT * FROM Department ORDER BY name`;
+  const query = `SELECT id_department, name FROM Department ORDER BY name`;
   request(query, res);
 });
 
 // Get all Subfields, degree to select hierarchy (1 = domain, 2 = field, 3 = subfield)
 app.get('/domainFieldSubfields', (_, res) => {
   const degree = 3;
-  const query = `SELECT * FROM Domain_Field_Subfield WHERE degree = ${degree} ORDER BY name`;
+  const query = `SELECT id_openalex, name FROM Domain_Field_Subfield WHERE degree = ${degree} ORDER BY name`;
   request(query, res);
 });
 
@@ -72,7 +62,7 @@ app.get('/openAccessStatuses', (_, res) => {
 
 // Get all sustainable development goals
 app.get('/sdgs', (_, res) => {
-  const query = `SELECT * FROM Sustainable_Development_Goals ORDER BY name`;
+  const query = `SELECT id_sdg, name FROM Sustainable_Development_Goals ORDER BY name`;
   request(query, res);
 });
 
@@ -84,7 +74,7 @@ app.get('/authors', (_, res) => {
 
 // Get all institutions
 app.get('/institutions', (_, res) => {
-  const query = `SELECT * FROM Institution ORDER BY name`;
+  const query = `SELECT id_institution, name FROM Institution ORDER BY name`;
   request(query, res);
 });
 
