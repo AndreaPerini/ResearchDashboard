@@ -10,7 +10,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(cors());
 
 /*app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: 'http://localhost:3000',
   optionsSuccessStatus: 200
 }));*/
 
