@@ -79,7 +79,7 @@ app.get('/institutions', (_, res) => {
 });
 
 app.get('/year', async (_, res) => {
-  const query = `SELECT MIN(year) AS minyear, MAX(year) AS maxyear FROM Work`;
+  const query = `SELECT MIN(year) AS min_year, MAX(year) AS max_year FROM Work`;
   request(query, res);
 });
 

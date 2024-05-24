@@ -124,13 +124,13 @@ function App() {
         })
         .then(data => {
           const minYear = 2000;
-          const maxYear = parseInt(data[0].maxyear);
-          document.getElementById('minYear').placeholder = minYear;
-          document.getElementById('maxYear').placeholder = maxYear;
-          document.getElementById('minYear').min = minYear;
-          document.getElementById('maxYear').min = minYear;
-          document.getElementById('minYear').max = maxYear;
-          document.getElementById('maxYear').max = maxYear;
+          const maxYear = parseInt(data[0].max_year);
+          document.getElementById('minYearTab1').placeholder = minYear;
+          document.getElementById('maxYearTab1').placeholder = maxYear;
+          document.getElementById('minYearTab1').min = minYear;
+          document.getElementById('maxYearTab1').min = minYear;
+          document.getElementById('minYearTab1').max = maxYear;
+          document.getElementById('maxYearTab1').max = maxYear;
         })
         .catch(error => console.error(`Error fetching data from years:`, error));
     };
@@ -146,12 +146,12 @@ function App() {
   const handleStartYearTab1 = event => {
     const year = event.target.value;
     setSelectedStartYearTab1(year);
-    document.getElementById('maxYear').min = year;
+    document.getElementById('maxYearTab1').min = year;
   };
   const handleFinishYearTab1 = event => {
     const year = event.target.value;
     setSelectedFinishYearTab1(event.target.value);
-    document.getElementById('minYear').max = year;
+    document.getElementById('minYearTab1').max = year;
   };
   const handleInstitutionChangeTab1 = (event) => {
     const value = event.target.value;
@@ -546,8 +546,8 @@ function App() {
                           </div>
                         </div>
                         <div className="col-md-2">
-                          <input type="number" id="minYear" name="minYear" onChange={handleStartYearTab1}></input>
-                          <input type="number" id="maxYear" name="maxYear" onChange={handleFinishYearTab1}></input>
+                          <input type="number" id="minYearTab1" name="minYear" onChange={handleStartYearTab1}></input>
+                          <input type="number" id="maxYearTab1" name="maxYear" onChange={handleFinishYearTab1}></input>
                         </div>
                       </div>
                     </div>
