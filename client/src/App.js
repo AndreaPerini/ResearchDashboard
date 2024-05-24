@@ -37,10 +37,30 @@ function App() {
     fetchData('/sdgs', setSdgs, signal);
     fetchData('/authors', setAuthors, signal);
     fetchData('/institutions', setInstitutions, signal);
-
-    return () => {
-      abortControllerRef.current.abort();
+    const fetchYears = async () => {
+      await fetch(API_BASE_URL + '/year', { signal })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const minYear = 2000;
+          const maxYear = parseInt(data[0].max_year);
+          document.getElementById('minYearTab1').placeholder = minYear;
+          document.getElementById('maxYearTab1').placeholder = maxYear;
+          document.getElementById('minYearTab1').min = minYear;
+          document.getElementById('maxYearTab1').min = minYear;
+          document.getElementById('minYearTab1').max = maxYear;
+          document.getElementById('maxYearTab1').max = maxYear;
+        })
+        .catch(error => console.error(`Error fetching data from years:`, error));
     };
+    fetchYears();
+    return () => {
+      abortControllerRef.current.abort()
+    }
   }, []);
 
   // Request for a resource
@@ -111,32 +131,6 @@ function App() {
   const [selectedFinishYearTab1, setSelectedFinishYearTab1] = useState('');
   const [inputInstitutionTab1, setInputInstitutionTab1] = useState('');
   const [suggestionsInstitutionTab1, setSuggestionsInstitutionTab1] = useState([]);
-
-  useEffect(() => {
-    const signal = abortControllerRef.current.signal;
-    const fetchYears = async () => {
-      await fetch(API_BASE_URL + '/year', { signal })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          const minYear = 2000;
-          const maxYear = parseInt(data[0].max_year);
-          document.getElementById('minYearTab1').placeholder = minYear;
-          document.getElementById('maxYearTab1').placeholder = maxYear;
-          document.getElementById('minYearTab1').min = minYear;
-          document.getElementById('maxYearTab1').min = minYear;
-          document.getElementById('minYearTab1').max = maxYear;
-          document.getElementById('maxYearTab1').max = maxYear;
-        })
-        .catch(error => console.error(`Error fetching data from years:`, error));
-    };
-    fetchYears();
-  }, []);
-
 
   // Update filter values
   const handleDepartmentChangeTab1 = event => setSelectedDepartmentTab1(event.target.value);
