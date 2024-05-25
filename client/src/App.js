@@ -54,6 +54,12 @@ function App() {
           document.getElementById('maxYearTab1').min = minYear;
           document.getElementById('minYearTab1').max = maxYear;
           document.getElementById('maxYearTab1').max = maxYear;
+          document.getElementById('minYearTab2').placeholder = minYear;
+          document.getElementById('maxYearTab2').placeholder = maxYear;
+          document.getElementById('minYearTab2').min = minYear;
+          document.getElementById('maxYearTab2').min = minYear;
+          document.getElementById('minYearTab2').max = maxYear;
+          document.getElementById('maxYearTab2').max = maxYear;
         })
         .catch(error => console.error(`Error fetching data from years:`, error));
     };
@@ -112,12 +118,6 @@ function App() {
     setActiveTab(tab);
     setSortColumn(null);
     setSortDirection('asc');
-    if (tab === 'tab1_1') {
-      document.getElementById('mapLegendTab1').style.display = 'flex';
-      updateMap();
-    } else {
-      document.getElementById('mapLegendTab1').style.display = 'none';
-    }
   };
 
   // TAB 1
@@ -161,7 +161,17 @@ function App() {
     setSuggestionsInstitutionTab1([]);
   };
 
-  // Values to populate the map
+  // Updating lengend visibility when in tab 1_1
+  useEffect(() => {
+    if (tab === 'tab1_1') {
+      document.getElementById('mapLegendTab1').style.display = 'flex';
+      updateMap();
+    } else {
+      document.getElementById('mapLegendTab1').style.display = 'none';
+    }
+  }, [activeTab]);
+
+  // Values to populate map table and graph
   const [institutionCollaborationsTab1, setInstitutionCollaborationsTab1] = useState([]);
   const [mapCollaborationsTab1, setMapCollaborationsTab1] = useState([]);
   const [yearsCollaborationsTab1, setYearsCollaborationsTab1] = useState([]);
@@ -171,11 +181,11 @@ function App() {
   const [yearsDataTab1, setYearsDataTab1] = useState({});
   const [collaborationsByInstitutionTab1, setCollaborationsByInstitutionTab1] = useState({});
 
-  // Refreshing values when filters are selected
+  // Updating values when filters are selected
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
 
-    fetchData(`/mapCollaborations?${new URLSearchParams({
+    fetchData(`/unimi/countryCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
@@ -185,7 +195,7 @@ function App() {
       finishYear: selectedFinishYearTab1
     })}`, setMapCollaborationsTab1, signal);
 
-    fetchData(`/collaborators?${new URLSearchParams({
+    fetchData(`/unimi/collaborators?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
@@ -195,7 +205,7 @@ function App() {
       finishYear: selectedFinishYearTab1
     })}`, setCollaboratorsTab1, signal);
 
-    fetchData(`/collaborations?${new URLSearchParams({
+    fetchData(`/unimi/collaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
@@ -205,7 +215,7 @@ function App() {
       finishYear: selectedFinishYearTab1
     })}`, setCollaborationsTab1, signal);
 
-    fetchData(`/institutionCollaborations?${new URLSearchParams({
+    fetchData(`/unimi/institutionCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
@@ -215,7 +225,7 @@ function App() {
       finishYear: selectedFinishYearTab1
     })}`, setInstitutionCollaborationsTab1, signal);
 
-    fetchData(`/yearsCollaborations?${new URLSearchParams({
+    fetchData(`/unimi/yearsCollaborations?${new URLSearchParams({
       institution: selectedInstitutionTab1,
       department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab1,
@@ -236,7 +246,7 @@ function App() {
         collaborationsByCountry[country] = { collabs: count };
       }
     });
-    document.getElementById('country_number').innerHTML = Object.keys(collaborationsByCountry).length;
+    document.getElementById('country_number_tab1').innerHTML = Object.keys(collaborationsByCountry).length;
     setCollaborationsByCountryTab1(collaborationsByCountry);
     updateMap();
   }, [mapCollaborationsTab1]);
@@ -253,7 +263,7 @@ function App() {
         collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
       }
     });
-    document.getElementById('institution_number').innerHTML = Object.keys(collaborationsByInstitution).length;
+    document.getElementById('institution_number_tab1').innerHTML = Object.keys(collaborationsByInstitution).length;
     setCollaborationsByInstitutionTab1(collaborationsByInstitution);
   }, [institutionCollaborationsTab1]);
 
@@ -272,24 +282,24 @@ function App() {
     updateGraph();
   }, [yearsCollaborationsTab1]);
 
-  // Updating data for the collaborators number
+  // Updating data for University of Milan's collaborators number
   useEffect(() => {
     try {
       if (collaboratorsTab1.length === 0) {
         throw new Error("No author found");
       }
-      document.getElementById('author_number').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
+      document.getElementById('author_number_tab1').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
     } catch (error) {
     }
   }, [collaboratorsTab1]);
 
-  // Updating data for the collaborations number
+  // Updating data for University of Milan's collaborations number
   useEffect(() => {
     try {
       if (collaborationsTab1.length === 0) {
         throw new Error("No works found");
       }
-      document.getElementById('work_number').innerHTML = parseInt(collaborationsTab1[0].total_works);
+      document.getElementById('work_number_tab1').innerHTML = parseInt(collaborationsTab1[0].total_works);
     } catch (error) {
     }
   }, [collaborationsTab1]);
@@ -434,29 +444,303 @@ function App() {
 
   // TAB 2
   // Filters Values
+  const [institutionsTab2, setInstitutionsTab2] = useState([]);
+  const [collaboratorsTab2, setCollaboratorsTab2] = useState([]);
+  //const [countriesTab2, setCountriesTab2] = useState([]);
+
+  const [selectedAuthorTab2, setSelectedAuthorTab2] = useState('1');
+  const [selectedDepartmentTab2, setSelectedDepartmentTab2] = useState('');
   const [selectedDomainFieldSubfieldTab2, setSelectedDomainFieldSubfieldTab2] = useState('');
   const [selectedOpenAccessStatusTab2, setSelectedOpenAccessStatusTab2] = useState('');
   const [selectedSdgTab2, setSelectedSdgTab2] = useState('');
-  const [selectedAuthorTab2, setSelectedAuthorTab2] = useState('');
+  const [selectedStartYearTab2, setSelectedStartYearTab2] = useState('2000');
+  const [selectedFinishYearTab2, setSelectedFinishYearTab2] = useState('');
+  const [selectedInstitutionTab2, setSelectedInstitutionTab2] = useState('');
+  const [selectedCollaboratorTab2, setSelectedCollaboratorTab2] = useState('');
+  //const [selectedCountryTab2, setSelectedCountryTab2] = useState('');
 
   // Update filter values
+  const handleAuthorChangeTab2 = event => setSelectedAuthorTab2(event.target.value);
+  const handleDepartmentChangeTab2 = event => setSelectedDepartmentTab2(event.target.value);
   const handleDomainFieldSubfieldChangeTab2 = event => setSelectedDomainFieldSubfieldTab2(event.target.value);
   const handleOpenAccessStatusChangeTab2 = event => setSelectedOpenAccessStatusTab2(event.target.value);
   const handleSdgChangeTab2 = event => setSelectedSdgTab2(event.target.value);
-  const handleAuthorChangeTab2 = event => setSelectedAuthorTab2(event.target.value);
+  const handleStartYearTab2 = event => {
+    const year = event.target.value;
+    setSelectedStartYearTab2(year);
+    document.getElementById('maxYearTab2').min = year;
+  };
+  const handleFinishYearTab2 = event => {
+    const year = event.target.value;
+    setSelectedFinishYearTab2(event.target.value);
+    document.getElementById('minYearTab2').max = year;
+  };
+  const handleInstitutionChangeTab2 = event => setSelectedInstitutionTab2(event.target.value);
+  const handleCollaboratorChangeTab2 = event => setSelectedCollaboratorTab2(event.target.value);
+  //const handleCountryChangeTab2 = event => setSelectedCountryTab2(event.target.value);
 
-  // Values to populate the table
-  const [authorCollaborationsTab2, setAuthorCollaborationsTab2] = useState([]);
-
-  // Refreshing table when filters are selected
+  // Filters requests
   useEffect(() => {
-    fetchData(`/authorCollaborations?${new URLSearchParams({
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/institutions?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setInstitutionsTab2, signal);
+    fetchData(`/author/collaborators?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCollaboratorsTab2, signal);
+    //fetchData(`/author/countries?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCountriesTab2, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2]);
+
+  // Updating legend and select when in tab 2_1
+  useEffect(() => {
+    if (tab === 'tab2_1') {
+      document.getElementById('mapLegendTab2').style.display = 'flex';
+      document.getElementById('text_inst_coll').innerHTML = 'Institutions';
+      document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
+      var select = document.getElementById('select_tab2');
+      select.value = selectedInstitutionTab2;
+      select.onchange = handleInstitutionChangeTab2;
+      select.innerHTML = '<option value="">Institution</option>';
+      institutionsTab2.map(institution => (
+        select.innerHTML += '<option key="' + institution.id_institution + '" value="' + institution.id_institution + '">' + institution.name + '</option>'
+      ));
+      setSelectedCollaboratorTab2('');
+      //updateMap();
+    } else {
+      document.getElementById('mapLegendTab2').style.display = 'none';
+    }
+  }, [activeTab]);
+
+  // Updating select when in tab 2_2
+  useEffect(() => {
+    if (tab === 'tab2_2') {
+      document.getElementById('text_inst_coll').innerHTML = 'Collaborators';
+      document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
+      var select = document.getElementById('select_tab2');
+      select.value = selectedCollaboratorTab2;
+      select.onchange = handleCollaboratorChangeTab2;
+      select.innerHTML = '<option value="">Collaborator</option>';
+      collaboratorsTab2.map(collaborator => (
+        select.innerHTML += '<option key="' + collaborator.id_author + '" value="' + collaborator.id_author + '">' + collaborator.surname + ' ' + collaborator.name + '</option>'
+      ));
+      setSelectedInstitutionTab2('');
+    }
+  }, [activeTab]);
+
+  // Values to populate the maps
+  const [collaborationsByCountryTab2, setCollaborationsByCountryTab2] = useState([]); //mappa 1
+  const [collaboratorsByCountryTab2, setCollaboratorsByCountryTab2] = useState([]); // mappa 2
+  const [collaborationsTab2, setCollaborationsTab2] = useState([]); // numero tot
+  const [institutionCollaborationsTab2, setInstitutionCollaborationsTab2] = useState([]); // numero 1
+  const [collaboratorsNumberTab2, setCollaboratorsNumberTab2] = useState([]); // numero 2
+  //const [countryInstitutionsTab2, setCountryInstitutionsTab2] = useState([]); // tabella 1
+  //const [countryCollaboratorsTab2, setCountryCollaboratorsTab2] = useState([]); // tabella 2
+
+  // Updating values when filters are selected
+  // mappa 1
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/countryCollaborations?${new URLSearchParams({
       id: selectedAuthorTab2,
+      institution: selectedInstitutionTab2,
+      department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
       sdg: selectedSdgTab2,
-    })}`, setAuthorCollaborationsTab2);
-  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab2, selectedOpenAccessStatusTab2, selectedSdgTab2]);
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    })}`, setCollaborationsByCountryTab2, signal);
+  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
+
+  // mappa 2
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/countryCollaborators?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      collaborator: selectedCollaboratorTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    })}`, setCollaboratorsByCountryTab2, signal);
+  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+
+  // numero tot
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/collaborations?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      institution: selectedInstitutionTab2,
+      collaborator: selectedCollaboratorTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    })}`, setCollaborationsTab2, signal);
+  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2, selectedCollaboratorTab2]);
+
+  // numero 1
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/institutionsCollaborations?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      institution: selectedInstitutionTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    })}`, setInstitutionCollaborationsTab2, signal);
+  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
+
+  // numero 2
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/collaboratorsCollaborations?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      collaborator: selectedCollaboratorTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    })}`, setCollaboratorsNumberTab2, signal);
+  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+
+  // tabella 1
+  /*useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/institutionsCountry?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      institution: selectedInstitutionTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2,
+      country: selectedCountryTab2
+    })}`, setCountryInstitutionsTab2, signal);
+  }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
+*/
+  // tabella 2
+  /*useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/collaboratorsCountry?${new URLSearchParams({
+      id: selectedAuthorTab2,
+      collaborator: selectedCollaboratorTab2,
+      department: selectedDepartmentTab1,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2,
+      country: selectedCountryTab2
+    })}`, setCountryCollaboratorsTab2, signal);
+  }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+*/
+  // Updating values
+  // mappa 1
+  useEffect(() => {
+    const collaborationsByCountry = {};
+    collaborationsByCountryTab2.forEach(row => {
+      const country = row.country;
+      const count = parseInt(row.collaboration_count);
+      if (!isNaN(count)) {
+        collaborationsByCountry[country] = { collabs: count };
+      }
+    });
+    setCollaborationsByCountryTab2(collaborationsByCountry);
+    //updateMap();
+  }, [collaborationsByCountryTab2]);
+
+  // mappa 2
+  useEffect(() => {
+    const collaboratorsByCountry = {};
+    collaboratorsByCountryTab2.forEach(row => {
+      const country = row.country;
+      const count = parseInt(row.collaboration_count);
+      if (!isNaN(count)) {
+        collaboratorsByCountry[country] = { collabs: count };
+      }
+    });
+    setCollaboratorsByCountryTab2(collaboratorsByCountry);
+    //updateMap();
+  }, [collaboratorsByCountryTab2]);
+
+  // numero tot
+  useEffect(() => {
+    try {
+      if (collaborationsTab2.length === 0) {
+        throw new Error("No works found");
+      }
+      document.getElementById('work_number_tab2').innerHTML = parseInt(collaborationsTab2[0].total_works);
+    } catch (error) {
+    }
+  }, [collaborationsTab2]);
+
+  // numero 1
+  useEffect(() => {
+    if (activeTab === 'tab2_1') {
+      try {
+        if (institutionCollaborationsTab2.length === 0) {
+          throw new Error("No institution found");
+        }
+        document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
+      } catch (error) {
+      }
+    }
+  }, [institutionCollaborationsTab2]);
+
+  // numero 2
+  useEffect(() => {
+    if (activeTab === 'tab2_1') {
+      try {
+        if (collaboratorsNumberTab2.length === 0) {
+          throw new Error("No author found");
+        }
+        document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
+      } catch (error) {
+      }
+    }
+  }, [collaboratorsNumberTab2]);
+
+  // tabella 1
+  /*useEffect(() => {
+    if (activeTab === 'tab2_1') {
+      var select = document.getElementById('select_country_tab2');
+      select.value = selectedCountryTab2;
+      select.onchange = handleCountryChangeTab2;
+      select.innerHTML = '';
+      countriesTab2.map(country => (
+        select.innerHTML += '<option key="' + country.country_code + '" value="' + country.country_code + '">' + country.country_code + '</option>'
+      ));
+      const table = document.getElementById('inst-coll-table');
+      table.innerHTML = `
+      <thead>
+        <tr>
+          <th><span>Collaborator</span></th>
+          <th><span>Collaborations</span></th>
+        </tr>
+      </thead>`;
+      countryInstitutionsTab2.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.institution_name}</td>
+          <td>${row.collaboration_count}</td>
+        `;
+        table.appendChild(tr);
+      });
+    }
+  }, [countryInstitutionsTab2, activeTab]);*/
+
+  // tabella 2
 
   // TAB 3
 
@@ -470,7 +754,7 @@ function App() {
                 <a className="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true" onClick={() => handleTabChange('tab1_1')}>University of Milan's Collaborations</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" onClick={() => handleTabChange('tab2')}>Author Collaboration</a>
+                <a className="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false" onClick={() => handleTabChange('tab2_1')}>Author Collaboration</a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" id="tab3-tab" data-toggle="tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false" onClick={() => handleTabChange('tab3')}>Group's Collaborations</a>
@@ -483,81 +767,79 @@ function App() {
                 <h2 className='title'>Collaborations with University of Milan</h2>
                 <div className="card">
                   <div className="row justify-content-around">
-                    <div>
-                      <div className="card-body row justify-content-around">
-                        <div className="col-md-2">
-                          <div className="card-text filter">
-                            <form id="institution_input">
-                              <input type="text" value={inputInstitutionTab1} onChange={handleInstitutionChangeTab1} placeholder="Institution" />
-                              <ul className='suggestion-list'>
-                                {suggestionsInstitutionTab1.map((institution) => (
-                                  <li key={institution.id_institution} onClick={() => handleSuggestionClickTab1(institution)}>
-                                    {institution.name}
-                                  </li>
-                                ))}
-                              </ul>
-                            </form>
-                          </div>
-                        </div>
-                        <div className="col-md-2">
-                          <div className="card-text filter">
-                            <select className="form-select" value={selectedDepartmentTab1} onChange={handleDepartmentChangeTab1}>
-                              <option value="">Department</option>
-                              {departments.map(department => (
-                                <option key={department.id_department} value={department.id_department}>{department.name}</option>
+                    <div className="card-body row justify-content-around">
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <form id="institution_input">
+                            <input type="text" value={inputInstitutionTab1} onChange={handleInstitutionChangeTab1} placeholder="Institution" />
+                            <ul className='suggestion-list'>
+                              {suggestionsInstitutionTab1.map((institution) => (
+                                <li key={institution.id_institution} onClick={() => handleSuggestionClickTab1(institution)}>
+                                  {institution.name}
+                                </li>
                               ))}
-                            </select>
-                          </div>
+                            </ul>
+                          </form>
                         </div>
-                        <div className="col-md-2">
-                          <div className="card-text filter">
-                            <select className="form-select" value={selectedDomainFieldSubfieldTab1} onChange={handleDomainFieldSubfieldChangeTab1}>
-                              <option value="">Topic</option>
-                              {subfields.map(subfield => (
-                                <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
-                              ))}
-                            </select>
-                          </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedDepartmentTab1} onChange={handleDepartmentChangeTab1}>
+                            <option value="">Department</option>
+                            {departments.map(department => (
+                              <option key={department.id_department} value={department.id_department}>{department.name}</option>
+                            ))}
+                          </select>
                         </div>
-                        <div className="col-md-2">
-                          <div className="card-text filter">
-                            <select className="form-select" value={selectedOpenAccessStatusTab1} onChange={handleOpenAccessStatusChangeTab1}>
-                              <option value="">Open access status</option>
-                              {openAccessStatuses.map(status => (
-                                <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
-                              ))}
-                            </select>
-                          </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedDomainFieldSubfieldTab1} onChange={handleDomainFieldSubfieldChangeTab1}>
+                            <option value="">Topic</option>
+                            {subfields.map(subfield => (
+                              <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
+                            ))}
+                          </select>
                         </div>
-                        <div className="col-md-2">
-                          <div className="card-text filter">
-                            <select className="form-select" value={selectedSdgTab1} onChange={handleSdgChangeTab1}>
-                              <option value="">Sustainable development goal</option>
-                              {sdgs.map(sdg => (
-                                <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
-                              ))}
-                            </select>
-                          </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedOpenAccessStatusTab1} onChange={handleOpenAccessStatusChangeTab1}>
+                            <option value="">Open access status</option>
+                            {openAccessStatuses.map(status => (
+                              <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
+                            ))}
+                          </select>
                         </div>
-                        <div className="col-md-2">
-                          <input type="number" id="minYearTab1" name="minYear" onChange={handleStartYearTab1}></input>
-                          <input type="number" id="maxYearTab1" name="maxYear" onChange={handleFinishYearTab1}></input>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedSdgTab1} onChange={handleSdgChangeTab1}>
+                            <option value="">Sustainable development goal</option>
+                            {sdgs.map(sdg => (
+                              <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
+                            ))}
+                          </select>
                         </div>
+                      </div>
+                      <div className="col-md-2">
+                        <input type="number" id="minYearTab1" name="minYear" onChange={handleStartYearTab1}></input>
+                        <input type="number" id="maxYearTab1" name="maxYear" onChange={handleFinishYearTab1}></input>
                       </div>
                     </div>
                     <div className="row justify-content-around">
                       <div id='tab1-left' className="col-md-4">
-                        <div id='statistics'>
+                        <div id='statTab1'>
                           <div className="row g-0 justify-content-around">
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='author_number' className='number'>0</div>
+                                <div id='author_number_tab1' className='number'>0</div>
                                 <div className='text'>Collaborators</div>
                               </div>
                             </div>
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='country_number' className='number'>0</div>
+                                <div id='country_number_tab1' className='number'>0</div>
                                 <div className='text'>Countries</div>
                               </div>
                             </div>
@@ -565,13 +847,13 @@ function App() {
                           <div className="row g-0 justify-content-around">
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='institution_number' className='number'>0</div>
+                                <div id='institution_number_tab1' className='number'>0</div>
                                 <div className='text'>Institutions</div>
                               </div>
                             </div>
                             <div className='col-md-5'>
                               <div className="number-box">
-                                <div id='work_number' className='number'>0</div>
+                                <div id='work_number_tab1' className='number'>0</div>
                                 <div className='text'>Works</div>
                               </div>
                             </div>
@@ -583,7 +865,7 @@ function App() {
                               <tr>
                                 <th><span>Top 10</span></th>
                                 <th><span>Country</span></th>
-                                <th><span>Collaboration Count</span></th>
+                                <th><span>Collaborations</span></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -690,90 +972,130 @@ function App() {
             <div className="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
               <div id="author_collaborations">
                 <h2 className='title'>Author Collaborations</h2>
-                <div className="card mb-3">
-                  <div className="card-body row">
-                    <div className="col-md-3">
-                      <div className="card-text filter">
-                        <select className="form-select" value={selectedAuthorTab2} onChange={handleAuthorChangeTab2}>
-                          <option value="">Select an author</option>
-                          {authors.map(author => (
-                            <option key={author.id_author} value={author.id_author}>{author.surname} {author.name}</option>
-                          ))}
-                        </select>
+                <div className="card">
+                  <div className="row justify-content-around">
+                    <div className="card-body row justify-content-around">
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedAuthorTab2} onChange={handleAuthorChangeTab2}>
+                            {authors.map(author => (
+                              <option key={author.id_author} value={author.id_author}>{author.surname} {author.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedDepartmentTab2} onChange={handleDepartmentChangeTab2}>
+                            <option value="">Department</option>
+                            {departments.map(department => (
+                              <option key={department.id_department} value={department.id_department}>{department.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedDomainFieldSubfieldTab2} onChange={handleDomainFieldSubfieldChangeTab2}>
+                            <option value="">Topic</option>
+                            {subfields.map(subfield => (
+                              <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedOpenAccessStatusTab2} onChange={handleOpenAccessStatusChangeTab2}>
+                            <option value="">Open access status</option>
+                            {openAccessStatuses.map(status => (
+                              <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select className="form-select" value={selectedSdgTab2} onChange={handleSdgChangeTab2}>
+                            <option value="">Sustainable development goal</option>
+                            {sdgs.map(sdg => (
+                              <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <input type="number" id="minYearTab2" name="minYear" onChange={handleStartYearTab2}></input>
+                        <input type="number" id="maxYearTab2" name="maxYear" onChange={handleFinishYearTab2}></input>
                       </div>
                     </div>
-                    <div className="col-md-3">
-                      <div className="card-text filter">
-                        <select className="form-select" value={selectedDomainFieldSubfieldTab2} onChange={handleDomainFieldSubfieldChangeTab2}>
-                          <option value="">Select a topic</option>
-                          {subfields.map(subfield => (
-                            <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
-                          ))}
-                        </select>
+                    <div className="row justify-content-around">
+                      <div id='tab2-left' className="col-md-4">
+                        <div id='statTab2'>
+                          <div className="row g-0 justify-content-around">
+                            <div className="col-md-5">
+                              <div className="card-text filter">
+                                <select id='select_tab2' className="form-select"></select>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="row g-0 justify-content-around">
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='work_number_tab2' className='number'>0</div>
+                                <div className='text'>Collaborations</div>
+                              </div>
+                            </div>
+                            <div className='col-md-5'>
+                              <div className="number-box">
+                                <div id='institution_collaborator_tab2' className='number'>0</div>
+                                <div id='text_inst_coll' className='text'>Institutions</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div id='country-table'>
+                          <div className="row g-0 justify-content-around">
+                            <div className="col-md-5">
+                              <div className="card-text filter">
+                                <select id='select_country_tab2' className="form-select"></select>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="row g-0 justify-content-around">
+                            <div id='inst-coll' className='table-container'>
+                              <table className="table" id='inst-coll-table'></table>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-3">
-                      <div className="card-text filter">
-                        <select className="form-select" value={selectedOpenAccessStatusTab2} onChange={handleOpenAccessStatusChangeTab2}>
-                          <option value="">Select an open access status</option>
-                          {openAccessStatuses.map(status => (
-                            <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="col-md-3">
-                      <div className="card-text filter">
-                        <select className="form-select" value={selectedSdgTab2} onChange={handleSdgChangeTab2}>
-                          <option value="">Select a sustainable development goal</option>
-                          {sdgs.map(sdg => (
-                            <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
-                          ))}
-                        </select>
+                      <div className="col-md-8">
+                        <div className='row'>
+                          <div id='nav-tab2' className='col-md-4'>
+                            <ul className="nav nav-tabs" role="tablist">
+                              <li className="nav-item">
+                                <a className="nav-link active" id="tab2-tab2inst" data-toggle="tab" href="#tab2inst" role="tab" aria-controls="tab2inst" aria-selected="true" onClick={() => handleTabChange('tab2_1')}>Institutions</a>
+                              </li>
+                              <li className="nav-item">
+                                <a className="nav-link" id="tab2-tab2coll" data-toggle="tab" href="#tab2coll" role="tab" aria-controls="tab2coll" aria-selected="false" onClick={() => handleTabChange('tab2_2')}>Collaborators</a>
+                              </li>
+                            </ul>
+                          </div>
+                          <div className='col-md-8'>
+                            <div id="mapLegendTab2" className='legend-container'></div>
+                          </div>
+                        </div>
+                        <div className="tab-content">
+                          <div className="tab-pane fade show active" id="tab2inst" role="tabpanel" aria-labelledby="tab2-tab2inst">
+                            <div id="svgMapTab2"></div>
+                          </div>
+                          <div className="tab-pane fade" id="tab2coll" role="tabpanel" aria-labelledby="tab2-tab2coll">
+                            <div id="collMapTab2"></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="table-container">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th className="clickable" onClick={() => handleSort('institution_name')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Institution Name</span>
-                            {sortColumn === 'institution_name' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                        <th className="clickable" onClick={() => handleSort('country')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Country</span>
-                            {sortColumn === 'country' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                        <th className="clickable" onClick={() => handleSort('collaboration_count')}>
-                          <div className="d-flex align-items-center justify-content-between">
-                            <span>Collaboration Count</span>
-                            {sortColumn === 'collaboration_count' && (
-                              <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
-                            )}
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedData(authorCollaborationsTab2).map((collaboration, index) => (
-                        <tr key={index}>
-                          <td>{collaboration.institution_name}</td>
-                          <td>{collaboration.country}</td>
-                          <td>{collaboration.collaboration_count}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>

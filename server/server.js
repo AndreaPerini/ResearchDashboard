@@ -84,7 +84,7 @@ app.get('/year', async (_, res) => {
 });
 
 // First tab request for Unimi collaborations with all other countries
-app.get('/mapCollaborations', (req, res) => {
+app.get('/unimi/countryCollaborations', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
   SELECT 
@@ -97,6 +97,7 @@ app.get('/mapCollaborations', (req, res) => {
   ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
   WHERE AW1.id_institution = 1 
   AND AW2.id_institution != AW1.id_institution
+  AND AW1.id_author != AW2.id_author
   ${institution ? `AND I.id_institution = ${institution}` : ''}  
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
@@ -110,7 +111,7 @@ app.get('/mapCollaborations', (req, res) => {
 });
 
 // First tab request for Unimi collaborations with all other institutions
-app.get('/institutionCollaborations', (req, res) => {
+app.get('/unimi/institutionCollaborations', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
   SELECT 
@@ -126,6 +127,7 @@ app.get('/institutionCollaborations', (req, res) => {
   LEFT JOIN Citation AS C ON C.id_work = AW1.id_work
   WHERE AW1.id_institution = 1 
   AND AW2.id_institution != AW1.id_institution
+  AND AW1.id_author != AW2.id_author
   ${institution ? `AND I.id_institution = ${institution}` : ''}  
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
@@ -138,8 +140,8 @@ app.get('/institutionCollaborations', (req, res) => {
   request(query, res);
 });
 
-// First tab request for Unimi collaborations each year
-app.get('/yearsCollaborations', (req, res) => {
+// Univeristy of Milan collaborations each year
+app.get('/unimi/yearsCollaborations', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
   SELECT 
@@ -152,6 +154,7 @@ app.get('/yearsCollaborations', (req, res) => {
   ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
   WHERE AW1.id_institution = 1 
   AND AW2.id_institution != AW1.id_institution
+  AND AW1.id_author != AW2.id_author
   ${institution ? `AND AW2.id_institution = ${institution}` : ''}  
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
@@ -163,8 +166,8 @@ app.get('/yearsCollaborations', (req, res) => {
   request(query, res);
 });
 
-// Number of collaborating authors
-app.get('/collaborators', (req, res) => {
+// Number of collaborating authors of Univeristy of Milan
+app.get('/unimi/collaborators', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
   SELECT COUNT(DISTINCT AW2.id_author) AS total_authors
@@ -174,6 +177,7 @@ app.get('/collaborators', (req, res) => {
   JOIN Work AS W ON W.id_work = AW1.id_work
   ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
   WHERE AW1.id_institution = 1
+  AND AW1.id_author != AW2.id_author
   ${institution ? `AND I.id_institution = ${institution}` : ''}  
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
@@ -185,8 +189,8 @@ app.get('/collaborators', (req, res) => {
   request(query, res);
 });
 
-// Number of collaborations
-app.get('/collaborations', (req, res) => {
+// Number of collaborations of Univeristy of Milan
+app.get('/unimi/collaborations', (req, res) => {
   const { institution, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
   SELECT COUNT(DISTINCT AW1.id_work) AS total_works
@@ -196,6 +200,7 @@ app.get('/collaborations', (req, res) => {
   JOIN Work AS W ON W.id_work = AW1.id_work
   ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
   WHERE AW1.id_institution = 1
+  AND AW1.id_author != AW2.id_author
   ${institution ? `AND I.id_institution = ${institution}` : ''}  
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
@@ -207,23 +212,182 @@ app.get('/collaborations', (req, res) => {
   request(query, res);
 });
 
-
-// Second tab request for Unimi author collaborations by country
-app.get('/authorCollaborations', (req, res) => {
-  const { id, domainFieldSubfield, openAccessStatus, sdg } = req.query;
+// Filters for Univeristy of Milan authors
+app.get('/author/institutions', (req, res) => {
+  const { id } = req.query;
   const query = `
-      SELECT I2.name AS institution_name, I2.country_code AS country, COUNT(DISTINCT AW1.id_work) AS collaboration_count
+  SELECT DISTINCT I.id_institution, I.name 
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  JOIN Institution AS I ON AW2.id_institution = I.id_institution
+  WHERE AW1.id_author = ${id}
+  AND AW1.id_author != AW2.id_author
+  ORDER BY I.name`;
+  request(query, res);
+});
+
+app.get('/author/collaborators', (req, res) => {
+  const { id } = req.query;
+  const query = `
+  SELECT DISTINCT AW2.id_author, A.surname, A.name 
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  JOIN Author AS A ON AW2.id_author = A.id_author
+  WHERE AW1.id_author = ${id}
+  AND AW1.id_author != AW2.id_author
+  ORDER BY A.surname, A.name`;
+  request(query, res);
+});
+
+/*app.get('/author/countries', (req, res) => {
+  const { id } = req.query;
+  const query = `
+  SELECT DISTINCT I.country_code
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  JOIN Institution AS I ON AW2.id_institution = I.id_institution
+  WHERE AW1.id_author = ${id}
+  AND AW1.id_author != AW2.id_author
+  ORDER BY I.country_code`;
+  request(query, res);
+});*/
+
+// University of Milan author's collaborations by country
+// mappa 1
+app.get('/author/countryCollaborations', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
+  const query = `
+      SELECT I.country_code AS country, COUNT(DISTINCT AW1.id_work) AS collaboration_count
       FROM Author_Work AS AW1
-      JOIN Institution AS I1 ON AW1.id_institution = I1.id_institution
-      ${id ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
-      JOIN Work AS W ON W.id_work = AW1.id_work
+      ${department ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
+      ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
       JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
-      JOIN Institution AS I2 ON AW2.id_institution = I2.id_institution
-      ${id ? `WHERE A.id_author = ${id}` : ''}
+      JOIN Institution AS I ON AW2.id_institution = I.id_institution
+      WHERE AW1.id_author = ${id}
+      AND AW1.id_author != AW2.id_author
+      ${institution ? `AND I.id_institution = ${institution}` : ''}
+      ${department ? `AND A.id_department = ${department}` : ''}
       ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
       ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
       ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
-      GROUP BY I2.name, I2.country_code
+      ${startYear ? `AND W.year >= ${startYear}` : ''}
+      ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+      GROUP BY I.country_code
       ORDER BY collaboration_count DESC`;
   request(query, res);
 });
+
+// mappa 2
+app.get('/author/countryCollaborators', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, collaborator } = req.query;
+  const query = `
+      SELECT I.country_code AS country, COUNT(DISTINCT AW1.id_work) AS collaboration_count
+      FROM Author_Work AS AW1
+      ${department ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
+      ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+      JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
+      JOIN Institution AS I ON AW2.id_institution = I.id_institution
+      WHERE AW1.id_author = ${id}
+      AND AW1.id_author != AW2.id_author
+      ${collaborator ? `AND AW2.id_author = ${collaborator}` : ''}
+      ${department ? `AND A.id_department = ${department}` : ''}
+      ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+      ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+      ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+      ${startYear ? `AND W.year >= ${startYear}` : ''}
+      ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+      GROUP BY I.country_code
+      ORDER BY collaboration_count DESC`;
+  request(query, res);
+});
+
+// numero tot
+app.get('/author/collaborations', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution, collaborator } = req.query;
+  const query = `
+  SELECT COUNT(DISTINCT AW1.id_work) AS total_works
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
+  ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+  WHERE AW1.id_author = ${id}
+  ${institution ? `AND AW2.id_institution = ${institution}` : ''}  
+  ${collaborator ? `AND AW2.id_author = ${collaborator}` : ''}
+  ${department ? `AND A.id_department = ${department}` : ''}
+  ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+  ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+  ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+  ${startYear ? `AND W.year >= ${startYear}` : ''}
+  ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+  `;
+  request(query, res);
+});
+
+// numero 1
+app.get('/author/institutionsCollaborations', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
+  const query = `
+  SELECT COUNT(DISTINCT AW2.id_institution) AS institution_count
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
+  ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+  WHERE AW1.id_author = ${id}
+  ${institution ? `AND AW2.id_institution = ${institution}` : ''}  
+  ${department ? `AND A.id_department = ${department}` : ''}
+  ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+  ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+  ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+  ${startYear ? `AND W.year >= ${startYear}` : ''}
+  ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+  `;
+  request(query, res);
+});
+
+// numero 2
+app.get('/author/collaboratorsCollaborations', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
+  const query = `
+  SELECT COUNT(DISTINCT AW2.id_author) AS author_count
+  FROM Author_Work AS AW1
+  JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
+  ${department ? `JOIN Author AS A ON A.id_author = AW1.id_author` : ''}
+  ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+  WHERE AW1.id_author = ${id}
+  ${institution ? `AND AW2.id_institution = ${institution}` : ''}  
+  ${department ? `AND A.id_department = ${department}` : ''}
+  ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+  ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+  ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+  ${startYear ? `AND W.year >= ${startYear}` : ''}
+  ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+  `;
+  request(query, res);
+});
+
+// tabella 1
+/*app.get('/author/institutionsCountry', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution, country } = req.query;
+  const query = `
+      SELECT I.name AS institution_name, COUNT(DISTINCT AW1.id_work) AS collaboration_count
+      FROM Author_Work AS AW1
+      ${department ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
+      ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+      JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
+      JOIN Institution AS I ON AW2.id_institution = I.id_institution
+      WHERE AW1.id_author = ${id}
+      AND I.country_code = '${country}'
+      AND AW1.id_author != AW2.id_author
+      ${institution ? `AND I.id_institution = ${institution}` : ''}
+      ${department ? `AND A.id_department = ${department}` : ''}
+      ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+      ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+      ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+      ${startYear ? `AND W.year >= ${startYear}` : ''}
+      ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+      GROUP BY I.name
+      ORDER BY collaboration_count DESC`;
+  request(query, res);
+});*/
+
+// tabella 2
