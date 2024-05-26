@@ -212,7 +212,7 @@ app.get('/unimi/collaborations', (req, res) => {
   request(query, res);
 });
 
-// Filters for Univeristy of Milan authors
+// Institutions collaborating with an author
 app.get('/author/institutions', (req, res) => {
   const { id } = req.query;
   const query = `
@@ -226,6 +226,7 @@ app.get('/author/institutions', (req, res) => {
   request(query, res);
 });
 
+// Collaborators collaborating with an author
 app.get('/author/collaborators', (req, res) => {
   const { id } = req.query;
   const query = `
@@ -253,7 +254,6 @@ app.get('/author/collaborators', (req, res) => {
 });*/
 
 // University of Milan author's collaborations by country
-// mappa 1
 app.get('/author/countryCollaborations', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
   const query = `
@@ -277,11 +277,11 @@ app.get('/author/countryCollaborations', (req, res) => {
   request(query, res);
 });
 
-// mappa 2
+// University of Milan author's collaborators by country
 app.get('/author/countryCollaborators', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, collaborator } = req.query;
   const query = `
-      SELECT I.country_code AS country, COUNT(DISTINCT AW1.id_work) AS collaboration_count
+      SELECT I.country_code AS country, COUNT(DISTINCT AW2.id_institution) AS collaboration_count
       FROM Author_Work AS AW1
       ${department ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
       ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
@@ -301,7 +301,7 @@ app.get('/author/countryCollaborators', (req, res) => {
   request(query, res);
 });
 
-// numero tot
+// Number of collaborations of an author
 app.get('/author/collaborations', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution, collaborator } = req.query;
   const query = `
@@ -323,7 +323,7 @@ app.get('/author/collaborations', (req, res) => {
   request(query, res);
 });
 
-// numero 1
+// Number of institutions collaborating with an author
 app.get('/author/institutionsCollaborations', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
   const query = `
@@ -344,7 +344,7 @@ app.get('/author/institutionsCollaborations', (req, res) => {
   request(query, res);
 });
 
-// numero 2
+// Number of collaborators of an author
 app.get('/author/collaboratorsCollaborations', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
   const query = `

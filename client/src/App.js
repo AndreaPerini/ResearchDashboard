@@ -163,9 +163,9 @@ function App() {
 
   // Updating lengend visibility when in tab 1_1
   useEffect(() => {
-    if (tab === 'tab1_1') {
+    if (activeTab === 'tab1_1') {
       document.getElementById('mapLegendTab1').style.display = 'flex';
-      updateMap();
+      updateMapTab1();
     } else {
       document.getElementById('mapLegendTab1').style.display = 'none';
     }
@@ -248,7 +248,7 @@ function App() {
     });
     document.getElementById('country_number_tab1').innerHTML = Object.keys(collaborationsByCountry).length;
     setCollaborationsByCountryTab1(collaborationsByCountry);
-    updateMap();
+    //updateMapTab1();
   }, [mapCollaborationsTab1]);
 
   // Updating data for the table
@@ -319,17 +319,17 @@ function App() {
   // Updating the map
   useEffect(() => {
     if (activeTab === 'tab1_1') {
-      updateMap();
+      updateMapTab1();
     }
     setTimeout(() => {
       if (activeTab === 'tab1_1') {
-        updateMap();
+        updateMapTab1();
       }
     }, 500);
   }, [collaborationsByCountryTab1, activeTab]);
 
   // Instancing the map
-  const updateMap = () => {
+  const updateMapTab1 = () => {
     try {
       if (activeTab === 'tab1_1') {
         const mapContainer = document.getElementById('svgMapTab1');
@@ -493,7 +493,7 @@ function App() {
 
   // Updating legend and select when in tab 2_1
   useEffect(() => {
-    if (tab === 'tab2_1') {
+    if (activeTab === 'tab2_1') {
       document.getElementById('mapLegendTab2').style.display = 'flex';
       document.getElementById('text_inst_coll').innerHTML = 'Institutions';
       document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
@@ -505,7 +505,6 @@ function App() {
         select.innerHTML += '<option key="' + institution.id_institution + '" value="' + institution.id_institution + '">' + institution.name + '</option>'
       ));
       setSelectedCollaboratorTab2('');
-      //updateMap();
     } else {
       document.getElementById('mapLegendTab2').style.display = 'none';
     }
@@ -513,7 +512,7 @@ function App() {
 
   // Updating select when in tab 2_2
   useEffect(() => {
-    if (tab === 'tab2_2') {
+    if (activeTab === 'tab2_2') {
       document.getElementById('text_inst_coll').innerHTML = 'Collaborators';
       document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
       var select = document.getElementById('select_tab2');
@@ -535,6 +534,9 @@ function App() {
   const [collaboratorsNumberTab2, setCollaboratorsNumberTab2] = useState([]); // numero 2
   //const [countryInstitutionsTab2, setCountryInstitutionsTab2] = useState([]); // tabella 1
   //const [countryCollaboratorsTab2, setCountryCollaboratorsTab2] = useState([]); // tabella 2
+
+  const [mapInstitutionsTab2, setMapInstitutionsTab2] = useState([]); //mappa 1
+  const [mapCollaboratorsTab2, setMapCollaboratorsTab2] = useState([]); //mappa 2
 
   // Updating values when filters are selected
   // mappa 1
@@ -656,8 +658,7 @@ function App() {
         collaborationsByCountry[country] = { collabs: count };
       }
     });
-    setCollaborationsByCountryTab2(collaborationsByCountry);
-    //updateMap();
+    setMapInstitutionsTab2(collaborationsByCountry);
   }, [collaborationsByCountryTab2]);
 
   // mappa 2
@@ -670,8 +671,7 @@ function App() {
         collaboratorsByCountry[country] = { collabs: count };
       }
     });
-    setCollaboratorsByCountryTab2(collaboratorsByCountry);
-    //updateMap();
+    setMapCollaboratorsTab2(collaboratorsByCountry);
   }, [collaboratorsByCountryTab2]);
 
   // numero tot
@@ -741,6 +741,85 @@ function App() {
   }, [countryInstitutionsTab2, activeTab]);*/
 
   // tabella 2
+
+  // Updating collaborations map
+  useEffect(() => {
+    if (activeTab === 'tab2_1') {
+      updateMap1Tab2();
+    }
+    setTimeout(() => {
+      if (activeTab === 'tab2_1') {
+        updateMap1Tab2();
+      }
+    }, 500);
+  }, [mapInstitutionsTab2, activeTab]);
+
+  // Updating collaborators map
+  useEffect(() => {
+    if (activeTab === 'tab2_2') {
+      //updateMap2Tab2();
+    }
+    setTimeout(() => {
+      if (activeTab === 'tab2_2') {
+        //updateMap2Tab2();
+      }
+    }, 500);
+  }, [mapCollaboratorsTab2, activeTab]);
+
+  // Instancing collaborations map
+  const updateMap1Tab2 = () => {
+    try {
+      if (activeTab === 'tab2_1') {
+        const mapContainer = document.getElementById('svgMapTab2');
+        if (!mapContainer) {
+          throw new Error("Element with ID 'svgMapTab2' not found");
+        }
+        mapContainer.innerHTML = '';
+        const map = new svgMap({
+          targetElementID: 'svgMapTab2',
+          data: {
+            data: {
+              collabs: {
+                name: 'Number of collaborations',
+                format: '{0}',
+                thousandSeparator: '\''
+              }
+            },
+            applyData: 'collabs',
+            values: mapInstitutionsTab2
+          }
+        });
+
+        var maxValue = 0;
+        Object.keys(mapInstitutionsTab2).forEach(country => {
+          if (mapInstitutionsTab2[country].collabs > maxValue) {
+            maxValue = mapInstitutionsTab2[country].collabs;
+          }
+        });
+
+        // Legend
+        const colorMax = '#CC0033';
+        const colorMin = '#FFE5D9';
+        const colorNoData = '#E2E2E2';
+        const legend = document.getElementById('mapLegendTab2');
+        if (!legend) {
+          throw new Error("Element with ID 'mapLegendTab2' not found");
+        }
+        legend.innerHTML = `
+          <div class="legend-label">Number of Institutions: </div>
+          <div class="legend-items">
+          <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+          <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
+          <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
+          <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+          </div>
+        `;
+      }
+    } catch (error) {
+    }
+  };
 
   // TAB 3
 
