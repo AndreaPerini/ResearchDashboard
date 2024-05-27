@@ -265,6 +265,7 @@ app.get('/author/countries', (req, res) => {
   JOIN Institution AS I ON AW2.id_institution = I.id_institution
   WHERE AW1.id_author = ${id}
   AND AW1.id_author != AW2.id_author
+  AND I.country_code IS NOT NULL
   ORDER BY I.country_code`;
   request(query, res);
 });
