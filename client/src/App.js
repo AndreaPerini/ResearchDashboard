@@ -121,7 +121,7 @@ function App() {
   };
 
   // TAB 1
-  // Filters Values
+  // Selected filter values
   const [selectedDepartmentTab1, setSelectedDepartmentTab1] = useState('');
   const [selectedDomainFieldSubfieldTab1, setSelectedDomainFieldSubfieldTab1] = useState('');
   const [selectedOpenAccessStatusTab1, setSelectedOpenAccessStatusTab1] = useState('');
@@ -183,6 +183,7 @@ function App() {
 
   // Updating values when filters are selected
   useEffect(() => {
+    abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 
     fetchData(`/unimi/countryCollaborations?${new URLSearchParams({
@@ -234,7 +235,32 @@ function App() {
       startYear: selectedStartYearTab1,
       finishYear: selectedFinishYearTab1
     })}`, setYearsCollaborationsTab1, signal);
+
+    return () => {
+      abortControllerRef.current.abort()
+    }
   }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
+
+  useEffect(() => {
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/unimi/institutionView?${new URLSearchParams({
+      startYear: selectedStartYearTab1
+    })}`, setInstitutionCollaborationsTab1, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (institutionCollaborationsTab1.length === 0) {
+        throw new Error("No institution found");
+      }
+      document.getElementById('institution_number_tab1').innerHTML = Object.keys(institutionCollaborationsTab1).length;
+    } catch (error) {
+    }
+  }, [institutionCollaborationsTab1]);
 
   // Updating data for the map
   useEffect(() => {
@@ -248,7 +274,6 @@ function App() {
     });
     document.getElementById('country_number_tab1').innerHTML = Object.keys(collaborationsByCountry).length;
     setCollaborationsByCountryTab1(collaborationsByCountry);
-    //updateMapTab1();
   }, [mapCollaborationsTab1]);
 
   // Updating data for the table
@@ -263,7 +288,6 @@ function App() {
         collaborationsByInstitution[institution] = { country: country, collabs: count, citations: cit_count };
       }
     });
-    document.getElementById('institution_number_tab1').innerHTML = Object.keys(collaborationsByInstitution).length;
     setCollaborationsByInstitutionTab1(collaborationsByInstitution);
   }, [institutionCollaborationsTab1]);
 
@@ -446,7 +470,7 @@ function App() {
   // Filters Values
   const [institutionsTab2, setInstitutionsTab2] = useState([]);
   const [collaboratorsTab2, setCollaboratorsTab2] = useState([]);
-  //const [countriesTab2, setCountriesTab2] = useState([]);
+  const [countriesTab2, setCountriesTab2] = useState([]);
 
   const [selectedAuthorTab2, setSelectedAuthorTab2] = useState('1');
   const [selectedDepartmentTab2, setSelectedDepartmentTab2] = useState('');
@@ -457,7 +481,7 @@ function App() {
   const [selectedFinishYearTab2, setSelectedFinishYearTab2] = useState('');
   const [selectedInstitutionTab2, setSelectedInstitutionTab2] = useState('');
   const [selectedCollaboratorTab2, setSelectedCollaboratorTab2] = useState('');
-  //const [selectedCountryTab2, setSelectedCountryTab2] = useState('');
+  const [selectedCountryTab2, setSelectedCountryTab2] = useState('');
 
   // Update filter values
   const handleAuthorChangeTab2 = event => setSelectedAuthorTab2(event.target.value);
@@ -477,7 +501,7 @@ function App() {
   };
   const handleInstitutionChangeTab2 = event => setSelectedInstitutionTab2(event.target.value);
   const handleCollaboratorChangeTab2 = event => setSelectedCollaboratorTab2(event.target.value);
-  //const handleCountryChangeTab2 = event => setSelectedCountryTab2(event.target.value);
+  const handleCountryChangeTab2 = event => setSelectedCountryTab2(event.target.value);
 
   // Filters requests
   useEffect(() => {
@@ -485,7 +509,7 @@ function App() {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/institutions?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setInstitutionsTab2, signal);
     fetchData(`/author/collaborators?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCollaboratorsTab2, signal);
-    //fetchData(`/author/countries?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCountriesTab2, signal);
+    fetchData(`/author/countries?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCountriesTab2, signal);
     return () => {
       abortControllerRef.current.abort()
     }
@@ -532,7 +556,7 @@ function App() {
   const [collaborationsTab2, setCollaborationsTab2] = useState([]); // numero tot
   const [institutionCollaborationsTab2, setInstitutionCollaborationsTab2] = useState([]); // numero 1
   const [collaboratorsNumberTab2, setCollaboratorsNumberTab2] = useState([]); // numero 2
-  //const [countryInstitutionsTab2, setCountryInstitutionsTab2] = useState([]); // tabella 1
+  const [countryInstitutionsTab2, setCountryInstitutionsTab2] = useState([]); // tabella 1
   //const [countryCollaboratorsTab2, setCountryCollaboratorsTab2] = useState([]); // tabella 2
 
   const [mapInstitutionsTab2, setMapInstitutionsTab2] = useState([]); //mappa 1
@@ -616,7 +640,7 @@ function App() {
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
 
   // tabella 1
-  /*useEffect(() => {
+  useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/institutionsCountry?${new URLSearchParams({
       id: selectedAuthorTab2,
@@ -630,7 +654,7 @@ function App() {
       country: selectedCountryTab2
     })}`, setCountryInstitutionsTab2, signal);
   }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
-*/
+
   // tabella 2
   /*useEffect(() => {
     const signal = abortControllerRef.current.signal;
@@ -711,16 +735,20 @@ function App() {
     }
   }, [collaboratorsNumberTab2]);
 
+  // Updating county filter
+  useEffect(() => {
+    var select = document.getElementById('select_country_tab2');
+    select.value = selectedCountryTab2;
+    select.onchange = handleCountryChangeTab2;
+    select.innerHTML = '<option value="">Country</option>';
+    countriesTab2.map(country => (
+      select.innerHTML += '<option key="' + country.country_code + '" value="' + country.country_code + '">' + country.country_code + '</option>'
+    ));
+  }, [countriesTab2]);
+
   // tabella 1
-  /*useEffect(() => {
+  useEffect(() => {
     if (activeTab === 'tab2_1') {
-      var select = document.getElementById('select_country_tab2');
-      select.value = selectedCountryTab2;
-      select.onchange = handleCountryChangeTab2;
-      select.innerHTML = '';
-      countriesTab2.map(country => (
-        select.innerHTML += '<option key="' + country.country_code + '" value="' + country.country_code + '">' + country.country_code + '</option>'
-      ));
       const table = document.getElementById('inst-coll-table');
       table.innerHTML = `
       <thead>
@@ -738,7 +766,7 @@ function App() {
         table.appendChild(tr);
       });
     }
-  }, [countryInstitutionsTab2, activeTab]);*/
+  }, [countryInstitutionsTab2, activeTab]);
 
   // tabella 2
 
@@ -1021,7 +1049,7 @@ function App() {
                                   </thead>
                                   <tbody>
                                     {sortedData(Object.entries(collaborationsByInstitutionTab1).map(([institution, data]) => ({
-                                      institution_name: institution,
+                                      institution_name: data.name,
                                       country: data.country,
                                       collabs: data.collabs,
                                       citations: data.citations
@@ -1112,7 +1140,7 @@ function App() {
                       <div id='tab2-left' className="col-md-4">
                         <div id='statTab2'>
                           <div className="row g-0 justify-content-around">
-                            <div className="col-md-5">
+                            <div className="col-md-6">
                               <div className="card-text filter">
                                 <select id='select_tab2' className="form-select"></select>
                               </div>

@@ -221,3 +221,25 @@ input[type=number] {
   padding: 5px;
   margin-bottom: 10px;
 }
+
+/*Tab2*/
+#select_tab2 {
+  margin: 10px;
+}
+
+#statTab2 {
+  display: flex;
+  flex-direction: column;
+  height: 22%;
+  align-items: stretch;
+  flex: 0 0 auto;
+}
+
+#country-table {
+  height: 50%;
+  max-height: 100%;
+}
+
+#select_country_tab2 {
+  margin-bottom: 10px;
+}

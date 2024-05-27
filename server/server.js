@@ -128,7 +128,7 @@ app.get('/unimi/institutionCollaborations', (req, res) => {
   WHERE AW1.id_institution = 1 
   AND AW2.id_institution != AW1.id_institution
   AND AW1.id_author != AW2.id_author
-  ${institution ? `AND I.id_institution = ${institution}` : ''}  
+  ${institution ? `AND AW2.id_institution = ${institution}` : ''}
   ${department ? `AND A.id_department = ${department}` : ''}
   ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
   ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
@@ -136,6 +136,21 @@ app.get('/unimi/institutionCollaborations', (req, res) => {
   ${startYear ? `AND W.year >= ${startYear}` : ''}
   ${finishYear ? `AND W.year <= ${finishYear}` : ''}
   GROUP BY I.name, I.country_code
+  ORDER BY collaboration_count DESC`;
+  request(query, res);
+});
+
+app.get('/unimi/institutionView', (req, res) => {
+  const { startYear } = req.query;
+  const query = `
+  SELECT 
+  institution_name,
+  country,
+  SUM(collaboration_count) AS collaboration_count,
+  SUM(citation_count) AS citation_count
+  FROM long_query_materialized_view
+  WHERE year >= ${startYear}
+  GROUP BY institution_name, country
   ORDER BY collaboration_count DESC`;
   request(query, res);
 });
@@ -240,7 +255,8 @@ app.get('/author/collaborators', (req, res) => {
   request(query, res);
 });
 
-/*app.get('/author/countries', (req, res) => {
+// Countries collaborating with an author
+app.get('/author/countries', (req, res) => {
   const { id } = req.query;
   const query = `
   SELECT DISTINCT I.country_code
@@ -251,7 +267,7 @@ app.get('/author/collaborators', (req, res) => {
   AND AW1.id_author != AW2.id_author
   ORDER BY I.country_code`;
   request(query, res);
-});*/
+});
 
 // University of Milan author's collaborations by country
 app.get('/author/countryCollaborations', (req, res) => {
@@ -365,8 +381,8 @@ app.get('/author/collaboratorsCollaborations', (req, res) => {
   request(query, res);
 });
 
-// tabella 1
-/*app.get('/author/institutionsCountry', (req, res) => {
+// Institutions of a country collaborating with an author
+app.get('/author/institutionsCountry', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution, country } = req.query;
   const query = `
       SELECT I.name AS institution_name, COUNT(DISTINCT AW1.id_work) AS collaboration_count
@@ -388,6 +404,4 @@ app.get('/author/collaboratorsCollaborations', (req, res) => {
       GROUP BY I.name
       ORDER BY collaboration_count DESC`;
   request(query, res);
-});*/
-
-// tabella 2
+});
