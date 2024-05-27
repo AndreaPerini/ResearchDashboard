@@ -557,7 +557,7 @@ function App() {
   const [institutionCollaborationsTab2, setInstitutionCollaborationsTab2] = useState([]); // numero 1
   const [collaboratorsNumberTab2, setCollaboratorsNumberTab2] = useState([]); // numero 2
   const [countryInstitutionsTab2, setCountryInstitutionsTab2] = useState([]); // tabella 1
-  //const [countryCollaboratorsTab2, setCountryCollaboratorsTab2] = useState([]); // tabella 2
+  const [countryCollaboratorsTab2, setCountryCollaboratorsTab2] = useState([]); // tabella 2
 
   const [mapInstitutionsTab2, setMapInstitutionsTab2] = useState([]); //mappa 1
   const [mapCollaboratorsTab2, setMapCollaboratorsTab2] = useState([]); //mappa 2
@@ -656,7 +656,7 @@ function App() {
   }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
 
   // tabella 2
-  /*useEffect(() => {
+  useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/collaboratorsCountry?${new URLSearchParams({
       id: selectedAuthorTab2,
@@ -670,7 +670,7 @@ function App() {
       country: selectedCountryTab2
     })}`, setCountryCollaboratorsTab2, signal);
   }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
-*/
+
   // Updating values
   // mappa 1
   useEffect(() => {
@@ -690,7 +690,7 @@ function App() {
     const collaboratorsByCountry = {};
     collaboratorsByCountryTab2.forEach(row => {
       const country = row.country;
-      const count = parseInt(row.collaboration_count);
+      const count = parseInt(row.collaborator_count);
       if (!isNaN(count)) {
         collaboratorsByCountry[country] = { collabs: count };
       }
@@ -753,7 +753,7 @@ function App() {
       table.innerHTML = `
       <thead>
         <tr>
-          <th><span>Collaborator</span></th>
+          <th><span>Institution</span></th>
           <th><span>Collaborations</span></th>
         </tr>
       </thead>`;
@@ -769,6 +769,26 @@ function App() {
   }, [countryInstitutionsTab2, activeTab]);
 
   // tabella 2
+  useEffect(() => {
+    if (activeTab === 'tab2_2') {
+      const table = document.getElementById('inst-coll-table');
+      table.innerHTML = `
+      <thead>
+        <tr>
+          <th><span>Collaborator</span></th>
+          <th><span>Collaborations</span></th>
+        </tr>
+      </thead>`;
+      countryCollaboratorsTab2.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.name} ${row.surname}</td>
+          <td>${row.collaboration_count}</td>
+        `;
+        table.appendChild(tr);
+      });
+    }
+  }, [countryCollaboratorsTab2, activeTab]);
 
   // Updating collaborations map
   useEffect(() => {

@@ -230,17 +230,28 @@ input[type=number] {
 #statTab2 {
   display: flex;
   flex-direction: column;
-  height: 20%;
   align-items: stretch;
   flex: 0 0 auto;
 }
 
 #country-table {
   margin-top: 10px;
-  height: 65%;
-  overflow: hidden;
 }
 
 #select_country_tab2 {
   margin-bottom: 10px;
+}
+
+#inst-coll {
+  height: 100%;
+  overflow-y: auto;
+}
+
+#inst-coll-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#tab2-left {
+  overflow: hidden;
 }

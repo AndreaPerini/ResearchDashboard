@@ -298,7 +298,7 @@ app.get('/author/countryCollaborations', (req, res) => {
 app.get('/author/countryCollaborators', (req, res) => {
   const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, collaborator } = req.query;
   const query = `
-      SELECT I.country_code AS country, COUNT(DISTINCT AW2.id_institution) AS collaboration_count
+      SELECT I.country_code AS country, COUNT(DISTINCT AW2.id_author) AS collaborator_count
       FROM Author_Work AS AW1
       ${department ? `JOIN Author AS A ON AW1.id_author = A.id_author` : ''}
       ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
@@ -314,7 +314,7 @@ app.get('/author/countryCollaborators', (req, res) => {
       ${startYear ? `AND W.year >= ${startYear}` : ''}
       ${finishYear ? `AND W.year <= ${finishYear}` : ''}
       GROUP BY I.country_code
-      ORDER BY collaboration_count DESC`;
+      ORDER BY collaborator_count DESC`;
   request(query, res);
 });
 
@@ -404,5 +404,29 @@ app.get('/author/institutionsCountry', (req, res) => {
       ${finishYear ? `AND W.year <= ${finishYear}` : ''}
       GROUP BY I.name
       ORDER BY collaboration_count DESC`;
+  request(query, res);
+});
+
+app.get('/author/collaboratorsCountry', (req, res) => {
+  const { id, department, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, country } = req.query;
+  const query = `
+    SELECT A.name AS name, A.surname AS surname, COUNT(DISTINCT AW1.id_work) AS collaboration_count
+    FROM Author_Work AS AW1
+    ${department ? `JOIN Author AS A2 ON AW1.id_author = A2.id_author` : ''}
+    ${startYear || finishYear || domainFieldSubfield || openAccessStatus || sdg ? `JOIN Work AS W ON W.id_work = AW1.id_work` : ''}
+    JOIN Author_Work AS AW2 ON AW1.id_work = AW2.id_work
+    JOIN Institution AS I ON AW2.id_institution = I.id_institution
+    JOIN Author AS A ON AW2.id_author = A.id_author
+    WHERE AW1.id_author = ${id}
+    AND AW1.id_author != AW2.id_author
+    AND I.country_code = '${country}'
+    ${department ? `AND A.id_department = ${department}` : ''}
+    ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
+    ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
+    ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
+    ${startYear ? `AND W.year >= ${startYear}` : ''}
+    ${finishYear ? `AND W.year <= ${finishYear}` : ''}
+    GROUP BY A.name, A.surname
+    ORDER BY collaboration_count DESC`;
   request(query, res);
 });
