@@ -257,7 +257,11 @@ function App() {
       if (institutionCollaborationsTab1.length === 0) {
         throw new Error("No institution found");
       }
-      document.getElementById('institution_number_tab1').innerHTML = Object.keys(institutionCollaborationsTab1).length;
+      const number = document.getElementById('institution_number_tab1');
+      if (!number) {
+        throw new Error("Element with ID 'institution_number_tab1' not found");
+      }
+      number.innerHTML = Object.keys(institutionCollaborationsTab1).length;
     } catch (error) {
     }
   }, [institutionCollaborationsTab1]);
@@ -272,7 +276,11 @@ function App() {
         collaborationsByCountry[country] = { collabs: count };
       }
     });
-    document.getElementById('country_number_tab1').innerHTML = Object.keys(collaborationsByCountry).length;
+    const number = document.getElementById('country_number_tab1');
+    if (!number) {
+      throw new Error("Element with ID 'country_number_tab1' not found");
+    }
+    number.innerHTML = Object.keys(collaborationsByCountry).length;
     setCollaborationsByCountryTab1(collaborationsByCountry);
   }, [mapCollaborationsTab1]);
 
@@ -312,7 +320,11 @@ function App() {
       if (collaboratorsTab1.length === 0) {
         throw new Error("No author found");
       }
-      document.getElementById('author_number_tab1').innerHTML = parseInt(collaboratorsTab1[0].total_authors);
+      const number = document.getElementById('author_number_tab1');
+      if (!number) {
+        throw new Error("Element with ID 'author_number_tab1' not found");
+      }
+      number.innerHTML = parseInt(collaboratorsTab1[0].total_authors);
     } catch (error) {
     }
   }, [collaboratorsTab1]);
@@ -323,7 +335,11 @@ function App() {
       if (collaborationsTab1.length === 0) {
         throw new Error("No works found");
       }
-      document.getElementById('work_number_tab1').innerHTML = parseInt(collaborationsTab1[0].total_works);
+      const number = document.getElementById('work_number_tab1');
+      if (!number) {
+        throw new Error("Element with ID 'work_number_tab1' not found");
+      }
+      number.innerHTML = parseInt(collaborationsTab1[0].total_works);
     } catch (error) {
     }
   }, [collaborationsTab1]);
@@ -517,40 +533,68 @@ function App() {
 
   // Updating legend and select when in tab 2_1
   useEffect(() => {
-    if (activeTab === 'tab2_1') {
-      document.getElementById('mapLegendTab2').style.display = 'flex';
-      document.getElementById('text_inst_coll').innerHTML = 'Institutions';
-      document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
-      var select = document.getElementById('select_tab2');
-      select.value = selectedInstitutionTab2;
-      select.onchange = handleInstitutionChangeTab2;
-      select.innerHTML = '<option value="">Institution</option>';
-      institutionsTab2.map(institution => (
-        select.innerHTML += '<option key="' + institution.id_institution + '" value="' + institution.id_institution + '">' + institution.name + '</option>'
-      ));
-      setSelectedCollaboratorTab2('');
-    } else {
-      document.getElementById('mapLegendTab2').style.display = 'none';
+    try {
+      if (activeTab === 'tab2_1') {
+        document.getElementById('mapLegendTab2').style.display = 'flex';
+        const text = document.getElementById('text_inst_coll');
+        if (!text) {
+          throw new Error("Element with ID 'text_inst_coll' not found");
+        }
+        text.innerHTML = 'Institutions';
+        const number = document.getElementById('institution_collaborator_tab2');
+        if (!number) {
+          throw new Error("Element with ID 'institution_collaborator_tab2' not found");
+        }
+        number.innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
+        const select = document.getElementById('select_tab2');
+        if (!select) {
+          throw new Error("Element with ID 'select_tab2' not found");
+        }
+        select.value = selectedInstitutionTab2;
+        select.onchange = handleInstitutionChangeTab2;
+        select.innerHTML = '<option value="">Institution</option>';
+        institutionsTab2.map(institution => (
+          select.innerHTML += '<option key="' + institution.id_institution + '" value="' + institution.id_institution + '">' + institution.name + '</option>'
+        ));
+        setSelectedCollaboratorTab2('');
+      } else {
+        document.getElementById('mapLegendTab2').style.display = 'none';
+      }
+    } catch (error) {
     }
   }, [activeTab]);
 
   // Updating select when in tab 2_2
   useEffect(() => {
-    if (activeTab === 'tab2_2') {
-      document.getElementById('text_inst_coll').innerHTML = 'Collaborators';
-      document.getElementById('institution_collaborator_tab2').innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
-      var select = document.getElementById('select_tab2');
-      select.value = selectedCollaboratorTab2;
-      select.onchange = handleCollaboratorChangeTab2;
-      select.innerHTML = '<option value="">Collaborator</option>';
-      collaboratorsTab2.map(collaborator => (
-        select.innerHTML += '<option key="' + collaborator.id_author + '" value="' + collaborator.id_author + '">' + collaborator.surname + ' ' + collaborator.name + '</option>'
-      ));
-      setSelectedInstitutionTab2('');
+    try {
+      if (activeTab === 'tab2_2') {
+        const text = document.getElementById('text_inst_coll');
+        if (!text) {
+          throw new Error("Element with ID 'text_inst_coll' not found");
+        }
+        text.innerHTML = 'Collaborators';
+        const number = document.getElementById('institution_collaborator_tab2');
+        if (!number) {
+          throw new Error("Element with ID 'institution_collaborator_tab2' not found");
+        }
+        number.innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
+        const select = document.getElementById('select_tab2');
+        if (!select) {
+          throw new Error("Element with ID 'select_tab2' not found");
+        }
+        select.value = selectedCollaboratorTab2;
+        select.onchange = handleCollaboratorChangeTab2;
+        select.innerHTML = '<option value="">Collaborator</option>';
+        collaboratorsTab2.map(collaborator => (
+          select.innerHTML += '<option key="' + collaborator.id_author + '" value="' + collaborator.id_author + '">' + collaborator.surname + ' ' + collaborator.name + '</option>'
+        ));
+        setSelectedInstitutionTab2('');
+      }
+    } catch (error) {
     }
   }, [activeTab]);
 
-  // Values to populate the maps
+  // Values to populate the tab
   const [collaborationsByCountryTab2, setCollaborationsByCountryTab2] = useState([]); //mappa 1
   const [collaboratorsByCountryTab2, setCollaboratorsByCountryTab2] = useState([]); // mappa 2
   const [collaborationsTab2, setCollaborationsTab2] = useState([]); // numero tot
@@ -562,8 +606,7 @@ function App() {
   const [mapInstitutionsTab2, setMapInstitutionsTab2] = useState([]); //mappa 1
   const [mapCollaboratorsTab2, setMapCollaboratorsTab2] = useState([]); //mappa 2
 
-  // Updating values when filters are selected
-  // mappa 1
+  // Updating values for institutions map when filters are selected
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/countryCollaborations?${new URLSearchParams({
@@ -578,7 +621,7 @@ function App() {
     })}`, setCollaborationsByCountryTab2, signal);
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
 
-  // mappa 2
+  // Updating values for collaborators map when filters are selected
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/countryCollaborators?${new URLSearchParams({
@@ -593,7 +636,7 @@ function App() {
     })}`, setCollaboratorsByCountryTab2, signal);
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
 
-  // numero tot
+  // Updating total number of collaborations of an author
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/collaborations?${new URLSearchParams({
@@ -609,7 +652,7 @@ function App() {
     })}`, setCollaborationsTab2, signal);
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2, selectedCollaboratorTab2]);
 
-  // numero 1
+  // Updating total number of institutions collaborating with an author
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/institutionsCollaborations?${new URLSearchParams({
@@ -624,7 +667,7 @@ function App() {
     })}`, setInstitutionCollaborationsTab2, signal);
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
 
-  // numero 2
+  // Updating total number of collaborators collaborating with an author
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/collaboratorsCollaborations?${new URLSearchParams({
@@ -639,7 +682,7 @@ function App() {
     })}`, setCollaboratorsNumberTab2, signal);
   }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
 
-  // tabella 1
+  // Updating the institutions collaborating with an author of a country
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/institutionsCountry?${new URLSearchParams({
@@ -655,7 +698,7 @@ function App() {
     })}`, setCountryInstitutionsTab2, signal);
   }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
 
-  // tabella 2
+  // Updating the collaborators collaborating with an author of a country
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
     fetchData(`/author/collaboratorsCountry?${new URLSearchParams({
@@ -671,8 +714,7 @@ function App() {
     })}`, setCountryCollaboratorsTab2, signal);
   }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
 
-  // Updating values
-  // mappa 1
+  // Updating data for the institutions map
   useEffect(() => {
     const collaborationsByCountry = {};
     collaborationsByCountryTab2.forEach(row => {
@@ -685,7 +727,7 @@ function App() {
     setMapInstitutionsTab2(collaborationsByCountry);
   }, [collaborationsByCountryTab2]);
 
-  // mappa 2
+  // Updating data for the collaborators map
   useEffect(() => {
     const collaboratorsByCountry = {};
     collaboratorsByCountryTab2.forEach(row => {
@@ -698,7 +740,7 @@ function App() {
     setMapCollaboratorsTab2(collaboratorsByCountry);
   }, [collaboratorsByCountryTab2]);
 
-  // numero tot
+  // Updating data for the number of collaborations
   useEffect(() => {
     try {
       if (collaborationsTab2.length === 0) {
@@ -709,7 +751,7 @@ function App() {
     }
   }, [collaborationsTab2]);
 
-  // numero 1
+  // Updating data for the number of institutions
   useEffect(() => {
     if (activeTab === 'tab2_1') {
       try {
@@ -722,7 +764,7 @@ function App() {
     }
   }, [institutionCollaborationsTab2]);
 
-  // numero 2
+  // Updating data for the number of collaborators
   useEffect(() => {
     if (activeTab === 'tab2_1') {
       try {
@@ -746,7 +788,7 @@ function App() {
     ));
   }, [countriesTab2]);
 
-  // tabella 1
+  // Updating data for the institutions table
   useEffect(() => {
     if (activeTab === 'tab2_1') {
       const table = document.getElementById('inst-coll-table');
@@ -768,7 +810,7 @@ function App() {
     }
   }, [countryInstitutionsTab2, activeTab]);
 
-  // tabella 2
+  // Updating data for the collaborators table
   useEffect(() => {
     if (activeTab === 'tab2_2') {
       const table = document.getElementById('inst-coll-table');
@@ -803,7 +845,7 @@ function App() {
   }, [mapInstitutionsTab2, activeTab]);
 
   // Updating collaborators map
-  useEffect(() => {
+  /*useEffect(() => {
     if (activeTab === 'tab2_2') {
       //updateMap2Tab2();
     }
@@ -812,7 +854,7 @@ function App() {
         //updateMap2Tab2();
       }
     }, 500);
-  }, [mapCollaboratorsTab2, activeTab]);
+  }, [mapCollaboratorsTab2, activeTab]);*/
 
   // Instancing collaborations map
   const updateMap1Tab2 = () => {
@@ -1069,7 +1111,7 @@ function App() {
                                   </thead>
                                   <tbody>
                                     {sortedData(Object.entries(collaborationsByInstitutionTab1).map(([institution, data]) => ({
-                                      institution_name: data.name,
+                                      institution_name: institution,
                                       country: data.country,
                                       collabs: data.collabs,
                                       citations: data.citations
