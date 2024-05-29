@@ -535,7 +535,7 @@ function App() {
   useEffect(() => {
     try {
       if (activeTab === 'tab2_1') {
-        document.getElementById('mapLegendTab2').style.display = 'flex';
+        //document.getElementById('mapLegendTab2').style.display = 'flex';
         const text = document.getElementById('text_inst_coll');
         if (!text) {
           throw new Error("Element with ID 'text_inst_coll' not found");
@@ -558,7 +558,7 @@ function App() {
         ));
         setSelectedCollaboratorTab2('');
       } else {
-        document.getElementById('mapLegendTab2').style.display = 'none';
+        //document.getElementById('mapLegendTab2').style.display = 'none';
       }
     } catch (error) {
     }
@@ -777,7 +777,7 @@ function App() {
     }
   }, [collaboratorsNumberTab2]);
 
-  // Updating county filter
+  // Updating country filter
   useEffect(() => {
     var select = document.getElementById('select_country_tab2');
     select.value = selectedCountryTab2;
@@ -845,28 +845,28 @@ function App() {
   }, [mapInstitutionsTab2, activeTab]);
 
   // Updating collaborators map
-  /*useEffect(() => {
+  useEffect(() => {
     if (activeTab === 'tab2_2') {
-      //updateMap2Tab2();
+      updateMap2Tab2();
     }
     setTimeout(() => {
       if (activeTab === 'tab2_2') {
-        //updateMap2Tab2();
+        updateMap2Tab2();
       }
     }, 500);
-  }, [mapCollaboratorsTab2, activeTab]);*/
+  }, [mapCollaboratorsTab2, activeTab]);
 
   // Instancing collaborations map
   const updateMap1Tab2 = () => {
     try {
       if (activeTab === 'tab2_1') {
-        const mapContainer = document.getElementById('svgMapTab2');
+        const mapContainer = document.getElementById('svgMap1Tab2');
         if (!mapContainer) {
-          throw new Error("Element with ID 'svgMapTab2' not found");
+          throw new Error("Element with ID 'svgMap1Tab2' not found");
         }
         mapContainer.innerHTML = '';
         const map = new svgMap({
-          targetElementID: 'svgMapTab2',
+          targetElementID: 'svgMap1Tab2',
           data: {
             data: {
               collabs: {
@@ -910,6 +910,61 @@ function App() {
     } catch (error) {
     }
   };
+
+// Instancing collaborations map
+const updateMap2Tab2 = () => {
+  try {
+    if (activeTab === 'tab2_2') {
+      const mapContainer = document.getElementById('svgMap2Tab2');
+      if (!mapContainer) {
+        throw new Error("Element with ID 'svgMap2Tab2' not found");
+      }
+      mapContainer.innerHTML = '';
+      const map = new svgMap({
+        targetElementID: 'svgMap2Tab2',
+        data: {
+          data: {
+            collabs: {
+              name: 'Number of collaborations',
+              format: '{0}',
+              thousandSeparator: '\''
+            }
+          },
+          applyData: 'collabs',
+          values: mapCollaboratorsTab2
+        }
+      });
+
+      var maxValue = 0;
+      Object.keys(mapCollaboratorsTab2).forEach(country => {
+        if (mapCollaboratorsTab2[country].collabs > maxValue) {
+          maxValue = mapCollaboratorsTab2[country].collabs;
+        }
+      });
+
+      // Legend
+      const colorMax = '#CC0033';
+      const colorMin = '#FFE5D9';
+      const colorNoData = '#E2E2E2';
+      const legend = document.getElementById('mapLegendTab2');
+      if (!legend) {
+        throw new Error("Element with ID 'mapLegendTab2' not found");
+      }
+      legend.innerHTML = `
+        <div class="legend-label">Number of Institutions: </div>
+        <div class="legend-items">
+        <div class="legend-item" style="background-color: ${colorNoData};">0</div>
+        <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
+        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
+        <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
+        </div>
+      `;
+    }
+  } catch (error) {
+  }
+};
 
   // TAB 3
 
@@ -1256,10 +1311,10 @@ function App() {
                         </div>
                         <div className="tab-content">
                           <div className="tab-pane fade show active" id="tab2inst" role="tabpanel" aria-labelledby="tab2-tab2inst">
-                            <div id="svgMapTab2"></div>
+                            <div id="svgMap1Tab2"></div>
                           </div>
                           <div className="tab-pane fade" id="tab2coll" role="tabpanel" aria-labelledby="tab2-tab2coll">
-                            <div id="collMapTab2"></div>
+                          <div id="svgMap2Tab2"></div>
                           </div>
                         </div>
                       </div>
