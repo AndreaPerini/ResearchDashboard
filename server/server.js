@@ -323,7 +323,7 @@ app.get('/author/countries', (req, res) => {
 
 // University of Milan author's collaborations by country
 app.get('/author/countryCollaborations', (req, res) => {
-  const { id, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, institution } = req.query;
+  const { id, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
       SELECT I.country_code AS country, COUNT(DISTINCT AW1.id_work) AS collaboration_count
       FROM Author_Work AS AW1
@@ -332,7 +332,6 @@ app.get('/author/countryCollaborations', (req, res) => {
       JOIN Institution AS I ON AW2.id_institution = I.id_institution
       WHERE AW1.id_author = ${id}
       AND AW1.id_author != AW2.id_author
-      ${institution ? `AND I.id_institution = ${institution}` : ''}
       ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
       ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
       ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}
@@ -345,7 +344,7 @@ app.get('/author/countryCollaborations', (req, res) => {
 
 // University of Milan author's collaborators by country
 app.get('/author/countryCollaborators', (req, res) => {
-  const { id, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, collaborator } = req.query;
+  const { id, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear } = req.query;
   const query = `
       SELECT I.country_code AS country, COUNT(DISTINCT AW2.id_author) AS collaborator_count
       FROM Author_Work AS AW1
@@ -354,7 +353,6 @@ app.get('/author/countryCollaborators', (req, res) => {
       JOIN Institution AS I ON AW2.id_institution = I.id_institution
       WHERE AW1.id_author = ${id}
       AND AW1.id_author != AW2.id_author
-      ${collaborator ? `AND AW2.id_author = ${collaborator}` : ''}
       ${domainFieldSubfield ? `AND W.id_work IN (SELECT id_work FROM Topic_Work WHERE id_topic IN (SELECT id_topic FROM Topic WHERE id_subfield = ${domainFieldSubfield}))` : ''}
       ${openAccessStatus ? `AND W.openaccess_status = '${openAccessStatus}'` : ''}
       ${sdg ? `AND W.id_work IN (SELECT id_work FROM Sdg_Work WHERE id_sdg = ${sdg})` : ''}

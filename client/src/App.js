@@ -601,7 +601,6 @@ function App() {
     const signal = abortControllerRef.current.signal;
     const params = new URLSearchParams({
       id: selectedAuthorTab2,
-      institution: selectedInstitutionTab2,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
       sdg: selectedSdgTab2,
@@ -609,6 +608,22 @@ function App() {
       finishYear: selectedFinishYearTab2
     });
     fetchData(`/author/countryCollaborations?${params}`, setCollaborationsByCountryTab2, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
+
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    const params = new URLSearchParams({
+      id: selectedAuthorTab2,
+      institution: selectedInstitutionTab2,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    });
     fetchData(`/author/institutionsCollaborations?${params}`, setInstitutionCollaborationsTab2, signal);
     return () => {
       abortControllerRef.current.abort()
@@ -620,6 +635,22 @@ function App() {
     const signal = abortControllerRef.current.signal;
     const params = new URLSearchParams({
       id: selectedAuthorTab2,
+      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+      openAccessStatus: selectedOpenAccessStatusTab2,
+      sdg: selectedSdgTab2,
+      startYear: selectedStartYearTab2,
+      finishYear: selectedFinishYearTab2
+    });
+    fetchData(`/author/countryCollaborators?${params}`, setCollaboratorsByCountryTab2, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
+
+  useEffect(() => {
+    const signal = abortControllerRef.current.signal;
+    const params = new URLSearchParams({
+      id: selectedAuthorTab2,
       collaborator: selectedCollaboratorTab2,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
@@ -627,7 +658,6 @@ function App() {
       startYear: selectedStartYearTab2,
       finishYear: selectedFinishYearTab2
     });
-    fetchData(`/author/countryCollaborators?${params})}`, setCollaboratorsByCountryTab2, signal);
     fetchData(`/author/collaboratorsCollaborations?${params}`, setCollaboratorsNumberTab2, signal);
     return () => {
       abortControllerRef.current.abort()
