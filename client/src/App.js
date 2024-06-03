@@ -15,8 +15,7 @@ function App() {
   const [subfields, setDomainFieldSubfields] = useState([]);
   const [openAccessStatuses, setOpenAccessStatuses] = useState([]);
   const [sdgs, setSdgs] = useState([]);
-  const [authors, setAuthors] = useState([]);
-  const [institutions, setInstitutions] = useState([]);
+  const [institutions, setInstitutions] = useState([]); // da spostare in tab1
 
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
@@ -30,12 +29,10 @@ function App() {
   useEffect(() => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
-
     fetchData('/departments', setDepartments, signal);
     fetchData('/domainFieldSubfields', setDomainFieldSubfields, signal);
     fetchData('/openAccessStatuses', setOpenAccessStatuses, signal);
     fetchData('/sdgs', setSdgs, signal);
-    fetchData('/authors', setAuthors, signal);
     fetchData('/institutions', setInstitutions, signal);
     const fetchYears = async () => {
       await fetch(API_BASE_URL + '/year', { signal })
@@ -118,6 +115,7 @@ function App() {
     setActiveTab(tab);
     setSortColumn(null);
     setSortDirection('asc');
+    //reset filters
   };
 
   // TAB 1
@@ -183,85 +181,61 @@ function App() {
 
   // Updating values when filters are selected
   useEffect(() => {
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
-    fetchData(`/unimi/countryCollaborations?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setMapCollaborationsTab1, signal);
-
-    fetchData(`/unimi/collaborators?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setCollaboratorsTab1, signal);
-
-    fetchData(`/unimi/collaborations?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setCollaborationsTab1, signal);
-
-    fetchData(`/unimi/institutionCollaborations?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setInstitutionCollaborationsTab1, signal);
-
-    fetchData(`/unimi/yearsCollaborations?${new URLSearchParams({
-      institution: selectedInstitutionTab1,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab1,
-      openAccessStatus: selectedOpenAccessStatusTab1,
-      sdg: selectedSdgTab1,
-      startYear: selectedStartYearTab1,
-      finishYear: selectedFinishYearTab1
-    })}`, setYearsCollaborationsTab1, signal);
-
-    return () => {
-      abortControllerRef.current.abort()
+    try {
+      if (activeTab === 'tab1_1' || activeTab === 'tab1_2') {
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+        const params = new URLSearchParams({
+          institution: selectedInstitutionTab1,
+          department: selectedDepartmentTab1,
+          domainFieldSubfield: selectedDomainFieldSubfieldTab1,
+          openAccessStatus: selectedOpenAccessStatusTab1,
+          sdg: selectedSdgTab1,
+          startYear: selectedStartYearTab1,
+          finishYear: selectedFinishYearTab1
+        });
+        fetchData(`/unimi/countryCollaborations?${params}`, setMapCollaborationsTab1, signal);
+        fetchData(`/unimi/collaborators?${params}`, setCollaboratorsTab1, signal);
+        fetchData(`/unimi/collaborations?${params}`, setCollaborationsTab1, signal);
+        fetchData(`/unimi/institutionCollaborations?${params}`, setInstitutionCollaborationsTab1, signal);
+        fetchData(`/unimi/yearsCollaborations?${params}`, setYearsCollaborationsTab1, signal);
+        return () => {
+          abortControllerRef.current.abort()
+        }
+      }
+    } catch (error) {
     }
   }, [selectedInstitutionTab1, selectedDepartmentTab1, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1]);
 
   useEffect(() => {
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-    fetchData(`/unimi/institutionView?${new URLSearchParams({
-      startYear: selectedStartYearTab1
-    })}`, setInstitutionCollaborationsTab1, signal);
-    return () => {
-      abortControllerRef.current.abort()
+    try {
+      if (activeTab === 'tab1_1' || activeTab === 'tab1_2') {
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+        fetchData(`/unimi/institutionView?${new URLSearchParams({
+          startYear: selectedStartYearTab1
+        })}`, setInstitutionCollaborationsTab1, signal);
+        return () => {
+          abortControllerRef.current.abort()
+        }
+      }
+    } catch (error) {
     }
   }, []);
 
+  // Updating data for the number of institutions
   useEffect(() => {
     try {
-      if (institutionCollaborationsTab1.length === 0) {
-        throw new Error("No institution found");
+      if (activeTab === 'tab1_1' || activeTab === 'tab1_2') {
+        if (institutionCollaborationsTab1.length === 0) {
+          throw new Error("No institution found");
+        }
+        const number = document.getElementById('institution_number_tab1');
+        if (!number) {
+          throw new Error("Element with ID 'institution_number_tab1' not found");
+        }
+        number.innerHTML = Object.keys(institutionCollaborationsTab1).length;
       }
-      const number = document.getElementById('institution_number_tab1');
-      if (!number) {
-        throw new Error("Element with ID 'institution_number_tab1' not found");
-      }
-      number.innerHTML = Object.keys(institutionCollaborationsTab1).length;
     } catch (error) {
     }
   }, [institutionCollaborationsTab1]);
@@ -484,6 +458,10 @@ function App() {
 
   // TAB 2
   // Filters Values
+  const [subfieldsTab2, setDomainFieldSubfieldsTab2] = useState([]);
+  const [openAccessStatusesTab2, setOpenAccessStatusesTab2] = useState([]);
+  const [sdgsTab2, setSdgsTab2] = useState([]);
+  const [authors, setAuthors] = useState([]);
   const [institutionsTab2, setInstitutionsTab2] = useState([]);
   const [collaboratorsTab2, setCollaboratorsTab2] = useState([]);
   const [countriesTab2, setCountriesTab2] = useState([]);
@@ -523,6 +501,18 @@ function App() {
   useEffect(() => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
+    fetchData(`/author/authors?${new URLSearchParams({ department: selectedDepartmentTab2 })}`, setAuthors, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedDepartmentTab2]);
+
+  useEffect(() => {
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+    fetchData(`/author/domainFieldSubfields?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setDomainFieldSubfieldsTab2, signal);
+    fetchData(`/author/openAccessStatuses?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setOpenAccessStatusesTab2, signal);
+    fetchData(`/author/sdgs?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setSdgsTab2, signal);
     fetchData(`/author/institutions?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setInstitutionsTab2, signal);
     fetchData(`/author/collaborators?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCollaboratorsTab2, signal);
     fetchData(`/author/countries?${new URLSearchParams({ id: selectedAuthorTab2 })}`, setCountriesTab2, signal);
@@ -546,9 +536,9 @@ function App() {
           throw new Error("Element with ID 'institution_collaborator_tab2' not found");
         }
         number.innerHTML = parseInt(institutionCollaborationsTab2[0].institution_count);
-        const select = document.getElementById('select_tab2');
+        const select = document.getElementById('select_instcoll_tab2');
         if (!select) {
-          throw new Error("Element with ID 'select_tab2' not found");
+          throw new Error("Element with ID 'select_country_tab2' not found");
         }
         select.value = selectedInstitutionTab2;
         select.onchange = handleInstitutionChangeTab2;
@@ -578,9 +568,9 @@ function App() {
           throw new Error("Element with ID 'institution_collaborator_tab2' not found");
         }
         number.innerHTML = parseInt(collaboratorsNumberTab2[0].author_count);
-        const select = document.getElementById('select_tab2');
+        const select = document.getElementById('select_instcoll_tab2');
         if (!select) {
-          throw new Error("Element with ID 'select_tab2' not found");
+          throw new Error("Element with ID 'select_country_tab2' not found");
         }
         select.value = selectedCollaboratorTab2;
         select.onchange = handleCollaboratorChangeTab2;
@@ -609,32 +599,40 @@ function App() {
   // Updating values for institutions map when filters are selected
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
-    fetchData(`/author/countryCollaborations?${new URLSearchParams({
+    const params = new URLSearchParams({
       id: selectedAuthorTab2,
       institution: selectedInstitutionTab2,
-      department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
       sdg: selectedSdgTab2,
       startYear: selectedStartYearTab2,
       finishYear: selectedFinishYearTab2
-    })}`, setCollaborationsByCountryTab2, signal);
-  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
+    });
+    fetchData(`/author/countryCollaborations?${params}`, setCollaborationsByCountryTab2, signal);
+    fetchData(`/author/institutionsCollaborations?${params}`, setInstitutionCollaborationsTab2, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
 
   // Updating values for collaborators map when filters are selected
   useEffect(() => {
     const signal = abortControllerRef.current.signal;
-    fetchData(`/author/countryCollaborators?${new URLSearchParams({
+    const params = new URLSearchParams({
       id: selectedAuthorTab2,
       collaborator: selectedCollaboratorTab2,
-      department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
       sdg: selectedSdgTab2,
       startYear: selectedStartYearTab2,
       finishYear: selectedFinishYearTab2
-    })}`, setCollaboratorsByCountryTab2, signal);
-  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+    });
+    fetchData(`/author/countryCollaborators?${params})}`, setCollaboratorsByCountryTab2, signal);
+    fetchData(`/author/collaboratorsCollaborations?${params}`, setCollaboratorsNumberTab2, signal);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
 
   // Updating total number of collaborations of an author
   useEffect(() => {
@@ -643,76 +641,51 @@ function App() {
       id: selectedAuthorTab2,
       institution: selectedInstitutionTab2,
       collaborator: selectedCollaboratorTab2,
-      department: selectedDepartmentTab1,
       domainFieldSubfield: selectedDomainFieldSubfieldTab2,
       openAccessStatus: selectedOpenAccessStatusTab2,
       sdg: selectedSdgTab2,
       startYear: selectedStartYearTab2,
       finishYear: selectedFinishYearTab2
     })}`, setCollaborationsTab2, signal);
-  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2, selectedCollaboratorTab2]);
+    return () => {
+      abortControllerRef.current.abort()
+    }
+  }, [selectedAuthorTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2, selectedCollaboratorTab2]);
 
-  // Updating total number of institutions collaborating with an author
+  // Updating the institutions and collaborators collaborating with an author of a country
   useEffect(() => {
-    const signal = abortControllerRef.current.signal;
-    fetchData(`/author/institutionsCollaborations?${new URLSearchParams({
-      id: selectedAuthorTab2,
-      institution: selectedInstitutionTab2,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
-      openAccessStatus: selectedOpenAccessStatusTab2,
-      sdg: selectedSdgTab2,
-      startYear: selectedStartYearTab2,
-      finishYear: selectedFinishYearTab2
-    })}`, setInstitutionCollaborationsTab2, signal);
-  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
+    try {
+      if (activeTab === 'tab2_1' || activeTab === 'tab2_2') {
+        const signal = abortControllerRef.current.signal;
 
-  // Updating total number of collaborators collaborating with an author
-  useEffect(() => {
-    const signal = abortControllerRef.current.signal;
-    fetchData(`/author/collaboratorsCollaborations?${new URLSearchParams({
-      id: selectedAuthorTab2,
-      collaborator: selectedCollaboratorTab2,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
-      openAccessStatus: selectedOpenAccessStatusTab2,
-      sdg: selectedSdgTab2,
-      startYear: selectedStartYearTab2,
-      finishYear: selectedFinishYearTab2
-    })}`, setCollaboratorsNumberTab2, signal);
-  }, [selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+        fetchData(`/author/institutionsCountry?${new URLSearchParams({
+          id: selectedAuthorTab2,
+          institution: selectedInstitutionTab2,
+          domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+          openAccessStatus: selectedOpenAccessStatusTab2,
+          sdg: selectedSdgTab2,
+          startYear: selectedStartYearTab2,
+          finishYear: selectedFinishYearTab2,
+          country: selectedCountryTab2
+        })}`, setCountryInstitutionsTab2, signal);
 
-  // Updating the institutions collaborating with an author of a country
-  useEffect(() => {
-    const signal = abortControllerRef.current.signal;
-    fetchData(`/author/institutionsCountry?${new URLSearchParams({
-      id: selectedAuthorTab2,
-      institution: selectedInstitutionTab2,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
-      openAccessStatus: selectedOpenAccessStatusTab2,
-      sdg: selectedSdgTab2,
-      startYear: selectedStartYearTab2,
-      finishYear: selectedFinishYearTab2,
-      country: selectedCountryTab2
-    })}`, setCountryInstitutionsTab2, signal);
-  }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedInstitutionTab2]);
-
-  // Updating the collaborators collaborating with an author of a country
-  useEffect(() => {
-    const signal = abortControllerRef.current.signal;
-    fetchData(`/author/collaboratorsCountry?${new URLSearchParams({
-      id: selectedAuthorTab2,
-      collaborator: selectedCollaboratorTab2,
-      department: selectedDepartmentTab1,
-      domainFieldSubfield: selectedDomainFieldSubfieldTab2,
-      openAccessStatus: selectedOpenAccessStatusTab2,
-      sdg: selectedSdgTab2,
-      startYear: selectedStartYearTab2,
-      finishYear: selectedFinishYearTab2,
-      country: selectedCountryTab2
-    })}`, setCountryCollaboratorsTab2, signal);
-  }, [selectedCountryTab2, selectedAuthorTab2, selectedDepartmentTab2, selectedDomainFieldSubfieldTab1, selectedOpenAccessStatusTab1, selectedSdgTab1, selectedStartYearTab1, selectedFinishYearTab1, selectedCollaboratorTab2]);
+        fetchData(`/author/collaboratorsCountry?${new URLSearchParams({
+          id: selectedAuthorTab2,
+          collaborator: selectedCollaboratorTab2,
+          domainFieldSubfield: selectedDomainFieldSubfieldTab2,
+          openAccessStatus: selectedOpenAccessStatusTab2,
+          sdg: selectedSdgTab2,
+          startYear: selectedStartYearTab2,
+          finishYear: selectedFinishYearTab2,
+          country: selectedCountryTab2
+        })}`, setCountryCollaboratorsTab2, signal);
+        return () => {
+          abortControllerRef.current.abort()
+        }
+      }
+    } catch (error) {
+    }
+  }, [selectedCountryTab2]);
 
   // Updating data for the institutions map
   useEffect(() => {
@@ -776,6 +749,47 @@ function App() {
       }
     }
   }, [collaboratorsNumberTab2]);
+
+  // Updating author when switching department
+  useEffect(() => {
+    var select = document.getElementById('select_author_tab2');
+    select.value = selectedAuthorTab2;
+    select.onchange = handleAuthorChangeTab2;
+    authors.map(author => (
+      select.innerHTML += `<option key=${author.id_author} value=${author.id_author}>${author.surname} ${author.name}</option>`
+    ))
+  }, [authors]);
+
+  // Update filters when switching author
+  useEffect(() => {
+    var select = document.getElementById('select_dfs_tab2');
+    select.value = selectedDomainFieldSubfieldTab2;
+    select.onchange = handleDomainFieldSubfieldChangeTab2;
+    select.innerHTML = '<option value="">Topic</option>';
+    subfieldsTab2.map(subfield => (
+      select.innerHTML += `<option key=${subfield.id} value=${subfield.id}>${subfield.name}</option>`
+    ));
+  }, [subfieldsTab2]);
+
+  useEffect(() => {
+    var select = document.getElementById('select_oa_tab2');
+    select.value = selectedOpenAccessStatusTab2;
+    select.onchange = handleOpenAccessStatusChangeTab2;
+    select.innerHTML = '<option value="">Open Access Status</option>';
+    openAccessStatusesTab2.map(status => (
+      select.innerHTML += `<option key='${status.openaccess_status}' value='${status.openaccess_status}'>${status.openaccess_status}</option>`
+    ));
+  }, [openAccessStatusesTab2]);
+
+  useEffect(() => {
+    var select = document.getElementById('select_sdg_tab2');
+    select.value = selectedSdgTab2;
+    select.onchange = handleSdgChangeTab2;
+    select.innerHTML = '<option value="">Sustainable Development Goals</option>';
+    sdgsTab2.map(sdg => (
+      select.innerHTML += `<option key=${sdg.id} value=${sdg.id}>${sdg.name}</option>`
+    ));
+  }, [sdgsTab2]);
 
   // Updating country filter
   useEffect(() => {
@@ -911,46 +925,46 @@ function App() {
     }
   };
 
-// Instancing collaborations map
-const updateMap2Tab2 = () => {
-  try {
-    if (activeTab === 'tab2_2') {
-      const mapContainer = document.getElementById('svgMap2Tab2');
-      if (!mapContainer) {
-        throw new Error("Element with ID 'svgMap2Tab2' not found");
-      }
-      mapContainer.innerHTML = '';
-      const map = new svgMap({
-        targetElementID: 'svgMap2Tab2',
-        data: {
+  // Instancing collaborations map
+  const updateMap2Tab2 = () => {
+    try {
+      if (activeTab === 'tab2_2') {
+        const mapContainer = document.getElementById('svgMap2Tab2');
+        if (!mapContainer) {
+          throw new Error("Element with ID 'svgMap2Tab2' not found");
+        }
+        mapContainer.innerHTML = '';
+        const map = new svgMap({
+          targetElementID: 'svgMap2Tab2',
           data: {
-            collabs: {
-              name: 'Number of collaborations',
-              format: '{0}',
-              thousandSeparator: '\''
-            }
-          },
-          applyData: 'collabs',
-          values: mapCollaboratorsTab2
-        }
-      });
+            data: {
+              collabs: {
+                name: 'Number of collaborations',
+                format: '{0}',
+                thousandSeparator: '\''
+              }
+            },
+            applyData: 'collabs',
+            values: mapCollaboratorsTab2
+          }
+        });
 
-      var maxValue = 0;
-      Object.keys(mapCollaboratorsTab2).forEach(country => {
-        if (mapCollaboratorsTab2[country].collabs > maxValue) {
-          maxValue = mapCollaboratorsTab2[country].collabs;
-        }
-      });
+        var maxValue = 0;
+        Object.keys(mapCollaboratorsTab2).forEach(country => {
+          if (mapCollaboratorsTab2[country].collabs > maxValue) {
+            maxValue = mapCollaboratorsTab2[country].collabs;
+          }
+        });
 
-      // Legend
-      const colorMax = '#CC0033';
-      const colorMin = '#FFE5D9';
-      const colorNoData = '#E2E2E2';
-      const legend = document.getElementById('mapLegendTab2');
-      if (!legend) {
-        throw new Error("Element with ID 'mapLegendTab2' not found");
-      }
-      legend.innerHTML = `
+        // Legend
+        const colorMax = '#CC0033';
+        const colorMin = '#FFE5D9';
+        const colorNoData = '#E2E2E2';
+        const legend = document.getElementById('mapLegendTab2');
+        if (!legend) {
+          throw new Error("Element with ID 'mapLegendTab2' not found");
+        }
+        legend.innerHTML = `
         <div class="legend-label">Number of Institutions: </div>
         <div class="legend-items">
         <div class="legend-item" style="background-color: ${colorNoData};">0</div>
@@ -961,10 +975,10 @@ const updateMap2Tab2 = () => {
         <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
         </div>
       `;
+      }
+    } catch (error) {
     }
-  } catch (error) {
-  }
-};
+  };
 
   // TAB 3
 
@@ -1201,15 +1215,6 @@ const updateMap2Tab2 = () => {
                     <div className="card-body row justify-content-around">
                       <div className="col-md-2">
                         <div className="card-text filter">
-                          <select className="form-select" value={selectedAuthorTab2} onChange={handleAuthorChangeTab2}>
-                            {authors.map(author => (
-                              <option key={author.id_author} value={author.id_author}>{author.surname} {author.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-2">
-                        <div className="card-text filter">
                           <select className="form-select" value={selectedDepartmentTab2} onChange={handleDepartmentChangeTab2}>
                             <option value="">Department</option>
                             {departments.map(department => (
@@ -1220,32 +1225,22 @@ const updateMap2Tab2 = () => {
                       </div>
                       <div className="col-md-2">
                         <div className="card-text filter">
-                          <select className="form-select" value={selectedDomainFieldSubfieldTab2} onChange={handleDomainFieldSubfieldChangeTab2}>
-                            <option value="">Topic</option>
-                            {subfields.map(subfield => (
-                              <option key={subfield.id_openalex} value={subfield.id_openalex}>{subfield.name}</option>
-                            ))}
-                          </select>
+                          <select id='select_author_tab2' className="form-select"></select>
                         </div>
                       </div>
                       <div className="col-md-2">
                         <div className="card-text filter">
-                          <select className="form-select" value={selectedOpenAccessStatusTab2} onChange={handleOpenAccessStatusChangeTab2}>
-                            <option value="">Open access status</option>
-                            {openAccessStatuses.map(status => (
-                              <option key={status.openaccess_status} value={status.openaccess_status}>{status.openaccess_status}</option>
-                            ))}
-                          </select>
+                          <select id='select_dfs_tab2' className="form-select"></select>
                         </div>
                       </div>
                       <div className="col-md-2">
                         <div className="card-text filter">
-                          <select className="form-select" value={selectedSdgTab2} onChange={handleSdgChangeTab2}>
-                            <option value="">Sustainable development goal</option>
-                            {sdgs.map(sdg => (
-                              <option key={sdg.id_sdg} value={sdg.id_sdg}>{sdg.name}</option>
-                            ))}
-                          </select>
+                          <select id='select_oa_tab2' className="form-select"></select>
+                        </div>
+                      </div>
+                      <div className="col-md-2">
+                        <div className="card-text filter">
+                          <select id='select_sdg_tab2' className="form-select"></select>
                         </div>
                       </div>
                       <div className="col-md-2">
@@ -1259,7 +1254,7 @@ const updateMap2Tab2 = () => {
                           <div className="row g-0 justify-content-around">
                             <div className="col-md-6">
                               <div className="card-text filter">
-                                <select id='select_tab2' className="form-select"></select>
+                                <select id='select_instcoll_tab2' className="form-select"></select>
                               </div>
                             </div>
                           </div>
@@ -1314,7 +1309,7 @@ const updateMap2Tab2 = () => {
                             <div id="svgMap1Tab2"></div>
                           </div>
                           <div className="tab-pane fade" id="tab2coll" role="tabpanel" aria-labelledby="tab2-tab2coll">
-                          <div id="svgMap2Tab2"></div>
+                            <div id="svgMap2Tab2"></div>
                           </div>
                         </div>
                       </div>
