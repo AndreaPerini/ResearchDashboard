@@ -525,7 +525,7 @@ function App() {
   useEffect(() => {
     try {
       if (activeTab === 'tab2_1') {
-        //document.getElementById('mapLegendTab2').style.display = 'flex';
+        document.getElementById('mapLegendTab2').style.display = 'flex';
         const text = document.getElementById('text_inst_coll');
         if (!text) {
           throw new Error("Element with ID 'text_inst_coll' not found");
@@ -548,7 +548,7 @@ function App() {
         ));
         setSelectedCollaboratorTab2('');
       } else {
-        //document.getElementById('mapLegendTab2').style.display = 'none';
+        document.getElementById('mapLegendTab2').style.display = 'none';
       }
     } catch (error) {
     }
@@ -782,7 +782,9 @@ function App() {
 
   // Updating author when switching department
   useEffect(() => {
+    console.log(authors);
     var select = document.getElementById('select_author_tab2');
+    select.innerHTML = '';
     select.value = selectedAuthorTab2;
     select.onchange = handleAuthorChangeTab2;
     authors.map(author => (
@@ -955,7 +957,7 @@ function App() {
     }
   };
 
-  // Instancing collaborations map
+  // Instancing collaborations map // TODO
   const updateMap2Tab2 = () => {
     try {
       if (activeTab === 'tab2_2') {
@@ -964,7 +966,7 @@ function App() {
           throw new Error("Element with ID 'svgMap2Tab2' not found");
         }
         mapContainer.innerHTML = '';
-        const map = new svgMap({
+        new svgMap({
           targetElementID: 'svgMap2Tab2',
           data: {
             data: {
@@ -978,33 +980,6 @@ function App() {
             values: mapCollaboratorsTab2
           }
         });
-
-        var maxValue = 0;
-        Object.keys(mapCollaboratorsTab2).forEach(country => {
-          if (mapCollaboratorsTab2[country].collabs > maxValue) {
-            maxValue = mapCollaboratorsTab2[country].collabs;
-          }
-        });
-
-        // Legend
-        const colorMax = '#CC0033';
-        const colorMin = '#FFE5D9';
-        const colorNoData = '#E2E2E2';
-        const legend = document.getElementById('mapLegendTab2');
-        if (!legend) {
-          throw new Error("Element with ID 'mapLegendTab2' not found");
-        }
-        legend.innerHTML = `
-        <div class="legend-label">Number of Institutions: </div>
-        <div class="legend-items">
-        <div class="legend-item" style="background-color: ${colorNoData};">0</div>
-        <div class="legend-item" style="background-color: ${colorMin};">${Math.round(maxValue * 0.01)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.25)};">${Math.round(maxValue * 0.25)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.5)};">${Math.round(maxValue * 0.5)}</div>
-        <div class="legend-item" style="background-color: ${map.getColor(colorMax, colorMin, 0.75)};">${Math.round(maxValue * 0.75)}</div>
-        <div class="legend-item" style="background-color: ${colorMax};">${maxValue}</div>
-        </div>
-      `;
       }
     } catch (error) {
     }
