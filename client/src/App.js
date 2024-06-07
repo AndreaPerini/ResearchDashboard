@@ -965,9 +965,27 @@ function App() {
           throw new Error("Element with ID 'svgMap1Tab2' not found");
         }
         mapContainer.innerHTML = '';
+        new svgMap({
+          targetElementID: 'svgMap2Tab2',
+          data: {
+            data: {
+              collabs: {
+                name: 'Number of collaborations',
+                format: '{0}',
+                thousandSeparator: '\''
+              }
+            },
+            applyData: 'collabs',
+            values: mapCollaboratorsTab2
+          }
+        });
 
-        
-
+        var maxValue = 0;
+        Object.keys(mapCollaboratorsTab2).forEach(country => {
+          if (mapCollaboratorsTab2[country].collabs > maxValue) {
+            maxValue = mapCollaboratorsTab2[country].collabs;
+          }
+        });
       }
     } catch (error) {
     }
