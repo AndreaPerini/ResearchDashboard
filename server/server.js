@@ -444,6 +444,7 @@ app.get('/author/institutionsCountry', (req, res) => {
   request(query, res);
 });
 
+// Collaborators of a country collaborating with an author
 app.get('/author/collaboratorsCountry', (req, res) => {
   const { id, domainFieldSubfield, openAccessStatus, sdg, startYear, finishYear, country } = req.query;
   const query = `

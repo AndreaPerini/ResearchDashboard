@@ -736,7 +736,7 @@ function App() {
     collaboratorsByCountryTab2.forEach(row => {
       const country = row.country;
       const count = parseInt(row.collaborator_count);
-      if (!isNaN(count)) {
+      if (!isNaN(count) && country) {
         collaboratorsByCountry[country] = { collabs: count };
       }
     });
@@ -782,7 +782,6 @@ function App() {
 
   // Updating author when switching department
   useEffect(() => {
-    console.log(authors);
     var select = document.getElementById('select_author_tab2');
     select.innerHTML = '';
     select.value = selectedAuthorTab2;
@@ -957,29 +956,18 @@ function App() {
     }
   };
 
-  // Instancing collaborations map // TODO
+  // Instancing collaborations map
   const updateMap2Tab2 = () => {
     try {
       if (activeTab === 'tab2_2') {
         const mapContainer = document.getElementById('svgMap2Tab2');
         if (!mapContainer) {
-          throw new Error("Element with ID 'svgMap2Tab2' not found");
+          throw new Error("Element with ID 'svgMap1Tab2' not found");
         }
         mapContainer.innerHTML = '';
-        new svgMap({
-          targetElementID: 'svgMap2Tab2',
-          data: {
-            data: {
-              collabs: {
-                name: 'Number of collaborations',
-                format: '{0}',
-                thousandSeparator: '\''
-              }
-            },
-            applyData: 'collabs',
-            values: mapCollaboratorsTab2
-          }
-        });
+
+        
+
       }
     } catch (error) {
     }
