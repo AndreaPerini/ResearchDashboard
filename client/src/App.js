@@ -1065,6 +1065,8 @@ function App() {
             }
           }
         });
+        document.getElementsByClassName('loading-container')[0].style.display = 'none';
+        document.getElementById('svgMapTab1').style.visibility = 'visible';
         const tab = document.getElementById('tab1');
         if (!tab) {
           throw new Error("Element with ID 'tab1' not found");
@@ -1082,7 +1084,7 @@ function App() {
   // Updating the map
   useEffect(() => {
     try {
-      if (activeTab === 'tab1_1' && Object.keys(collaborationsByCountryTab1).length > 0) {
+      if ((activeTab === 'tab1_1') && Object.keys(collaborationsByCountryTab1).length > 0) {
         const mapContainer = document.getElementById('svgMapTab1');
         if (!mapContainer) {
           throw new Error("Element with ID 'svgMapTab1' not found");
@@ -1143,7 +1145,7 @@ function App() {
     } catch (error) {
       console.error('Error setting map for tab 1:', error);
     }
-  }, [collaborationsByCountryTab1, activeTab]);
+  }, [collaborationsByCountryTab1]);
 
   // TAB 2
   // Filters Values
