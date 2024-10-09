@@ -1143,7 +1143,7 @@ function App() {
     } catch (error) {
       console.error('Error setting map for tab 1:', error);
     }
-  }, [collaborationsByCountryTab1]);
+  }, [collaborationsByCountryTab1, activeTab]);
 
   // TAB 2
   // Filters Values
@@ -2479,13 +2479,13 @@ function App() {
                   <p><big><b>Why the dashboard? </b></big>It is part of the committment of the University of Milan, as signatory Of the Barcelona Declaration, for the openness of research information.</p>
                   <p><big><b>For whom? </b></big>The dashboard is intended for internal and external researchers as a tool for identifying scientific collaborations. The dashboard can also be interesting for managers, journalists, and anyone else with an interest in the scientific performance of universities.</p>
                   <p><big><b>Data </b></big>The dashboard is based on bibliographic data from the OpenAlex database produced by OurResearch, enriched  and matched with the data of AIR, the institutional certified repository of the University.</p>
-                  <p><big><b>Indicators</b></big>The dashboard offers two views of the collaborations of the University: Institution Collaborations and Author collaborations. Below are detailed indicators and filters of each one.</p>
+                  <p><big><b>Indicators </b></big>The dashboard offers two views of the collaborations of the University: Institution Collaborations and Author collaborations. Below are detailed indicators and filters of each one.</p>
                   <ul>
                     <li>Institution Collaborations: herethe dashboard displays works (publications of researchers of the University of Milan), collaborators (coauthors of works), institutions (affiliations declared by coauthors in the works) and countries (countries of the institutions declared by authors in the works).</li>
                     <li>Author collaborations: here the dashboard displays collaborations (coauthors of works), and institutions (affiliations declared by coauthors in the works).</li>
                   </ul>
                   <p><big><b>Filters </b></big>Common filters are departments of the University of Milan, topics (the subfields of the OpenAlex classification detailed <a href="https://docs.openalex.org/api-entities/topics">here</a>), open access status (see <a href="https://docs.openalex.org/api-entities/works/work-object#oa_status">here</a>), Sustainable Development Goal and year (MICollD cover the time span from 2000 to 2024). In Author Collaborations the country is a filter.</p>
-                  <p><big><b>Data visualization</b></big>In both Institution Collaborations and Author Collaboration views data are presented  IN a table below and a map view. In Institutions Collaborations TAB map can be switched to a List View with a list of the institutions and a graph showing the trend of works and institution per year. In Author Collaboration TAB the map can be switched to a Collaborators view consisting in a graph showing the distribution per country of the collaborators.</p>
+                  <p><big><b>Data visualization </b></big>In both Institution Collaborations and Author Collaboration views data are presented  IN a table below and a map view. In Institutions Collaborations TAB map can be switched to a List View with a list of the institutions and a graph showing the trend of works and institution per year. In Author Collaboration TAB the map can be switched to a Collaborators view consisting in a graph showing the distribution per country of the collaborators.</p>
                   <div id='about-info'>
                     <p id='last-update'>Last updated:</p>
                     <p id='gui-version'>GUI version {gui_version}</p>
