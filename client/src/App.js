@@ -11,7 +11,7 @@ import CookiePopup from './CookiePopup';
 const API_BASE_URL = 'http://localhost:3001';
 
 // GUI version
-const gui_version = '5.0';
+const gui_version = '5.1';
 
 // Nations and continents with colors and names
 const nations = {

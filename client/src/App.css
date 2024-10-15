@@ -294,6 +294,7 @@ input[type=number] {
 /*Legend*/
 .legend-items {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .legend-item {
@@ -301,7 +302,7 @@ input[type=number] {
   height: 30px;
   text-align: center;
   line-height: 30px;
-  font-size: 14px;
+  font-size: 12px;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
 }
@@ -316,8 +317,10 @@ input[type=number] {
 
 .legend-label {
   margin-right: 10px;
+  font-size: 14px;
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .legend-container {
@@ -325,6 +328,22 @@ input[type=number] {
   justify-content: flex-end;
   padding: 5px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .legend-container {
+    justify-content: center;
+  }
+
+  .legend-item {
+    width: 30px;
+    font-size: 10px;
+  }
+
+  .legend-label {
+    font-size: 12px;
+  }
 }
 
 /*Tab2*/
