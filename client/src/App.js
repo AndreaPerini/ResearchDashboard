@@ -2231,7 +2231,7 @@ function App() {
                             <div className='col-6 col-md-5'>
                               <div className="number-box">
                                 <div id='work_number_tab1' className='number'></div>
-                                <div className='text'>Works</div>
+                                <div className='text'>Collaborations</div>
                               </div>
                             </div>
                           </div>
