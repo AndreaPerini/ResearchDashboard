@@ -443,7 +443,7 @@ app.get('/unimi/collaborations', (req, res) => {
   const query = `
   SELECT 
     COUNT(DISTINCT AW1.id_work) AS collaboration_count,
-    COUNT(DISTINCT CASE WHEN AW1.id_author != AW2.id_author THEN AW2.id_author END) AS author_count,
+    COUNT(DISTINCT AW2.id_author) AS author_count,
     COUNT(DISTINCT CASE WHEN AW1.id_institution != AW2.id_institution THEN AW2.id_institution END) AS institution_count
       FROM Author_Work AS AW1
       JOIN Author_Work AS AW2 ON AW2.id_work = AW1.id_work
