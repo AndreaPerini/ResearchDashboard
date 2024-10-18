@@ -1035,7 +1035,7 @@ function App() {
             labels: labels,
             datasets: [
               {
-                label: 'Works',
+                label: 'Collaborations',
                 data: collabsData,
                 borderColor: 'blue',
                 fill: false
